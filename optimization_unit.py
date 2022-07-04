@@ -117,7 +117,6 @@ def Optimization_Plain_Kolmogorov(data: np.ndarray,
     
     z = zOfKolmogorov(alpha = alpha, 
                       D_riser_number = D_riser_number, 
-                      sizeOverThreshold = sizeOverThreshold, 
                       numMultiThreshold = numMultiThreshold)
     mu_lb_value = np.maximum(0,(sizeOverThreshold+1-np.arange(1, sizeOverThreshold+1))/sizeOverThreshold-z/np.sqrt(sizeOverThreshold))
     mu_ub_value = np.minimum(1,(sizeOverThreshold-np.arange(1, sizeOverThreshold+1))/sizeOverThreshold+z/np.sqrt(sizeOverThreshold))
@@ -156,7 +155,6 @@ def Optimization_Monotone_Kolmogorov(data: np.ndarray,
     
     z = zOfKolmogorov(alpha = alpha, 
                       D_riser_number = D_riser_number, 
-                      sizeOverThreshold = sizeOverThreshold, 
                       numMultiThreshold = numMultiThreshold)
     mu_lb_value = np.maximum(0,(sizeOverThreshold+1-np.arange(1, sizeOverThreshold+1))/sizeOverThreshold-z/np.sqrt(sizeOverThreshold))
     mu_ub_value = np.minimum(1,(sizeOverThreshold-np.arange(1, sizeOverThreshold+1))/sizeOverThreshold+z/np.sqrt(sizeOverThreshold))
@@ -171,7 +169,7 @@ def Optimization_Monotone_Kolmogorov(data: np.ndarray,
     newObjectiveFunction.multiply(pHat)
     ConstraintFunctions = [PolynomialFunction([xi,np.inf],[[0]*0+[1]]) for xi in dataOverThreshold]
     
-    eta = etaRectangularSpecification(dataOverThreshold = dataOverThreshold, 
+    eta = etaRectangularSpecification(data = data,
                                       threshold = threshold, 
                                       alpha = alpha, 
                                       D_riser_number = D_riser_number,
@@ -203,7 +201,6 @@ def Optimization_Convex_Kolmogorov(data: np.ndarray,
     
     z = zOfKolmogorov(alpha = alpha, 
                       D_riser_number = D_riser_number, 
-                      sizeOverThreshold = sizeOverThreshold, 
                       numMultiThreshold = numMultiThreshold)
     mu_lb_value = np.maximum(0,(sizeOverThreshold+1-np.arange(1, sizeOverThreshold+1))/sizeOverThreshold-z/np.sqrt(sizeOverThreshold))
     mu_ub_value = np.minimum(1,(sizeOverThreshold-np.arange(1, sizeOverThreshold+1))/sizeOverThreshold+z/np.sqrt(sizeOverThreshold))
@@ -218,7 +215,7 @@ def Optimization_Convex_Kolmogorov(data: np.ndarray,
     newObjectiveFunction.multiply(pHat)
     ConstraintFunctions = [PolynomialFunction([xi,np.inf],[[0]*0+[1]]) for xi in dataOverThreshold]
     
-    [eta_lb, eta_ub] = etaRectangularSpecification(dataOverThreshold = dataOverThreshold, 
+    [eta_lb, eta_ub] = etaRectangularSpecification(data = data,
                                       threshold = threshold, 
                                       alpha = alpha, 
                                       D_riser_number = D_riser_number,
@@ -226,7 +223,7 @@ def Optimization_Convex_Kolmogorov(data: np.ndarray,
                                       bootstrappingSeed = bootstrappingSeed,  
                                       numMultiThreshold = numMultiThreshold)
     
-    nu = nuRectangularSpecification(dataOverThreshold = dataOverThreshold, 
+    nu = nuRectangularSpecification(data = data,
                                     threshold = threshold, 
                                     bootstrappingSize = bootstrappingSize, 
                                     bootstrappingSeed = bootstrappingSeed, 

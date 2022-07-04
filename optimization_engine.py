@@ -22,15 +22,15 @@ class PolynomialFunction:
         EXAMPLES:
             indicator functions: \mathbb{I}(x\geq a)          -> PolynomialFunction([a,np.inf],[[1]])
                                  \mathbb{I}(b\leq x\leq c)    -> PolynomialFunction([b,c,np.inf],[[1],[0]])
-            power functions:     x\mathbb{I}(x\geq a)         -> PolynomialFunction([a,np.inf],[[0,1]])
-                                 x^i\mathbb{I}(x\geq a),i>=0  -> PolynomialFunction([a,np.inf],[[0...0 (#i),1]])
+            power functions:     x\mathbb{I}(x\geq a)         -> PolynomialFunction([a,np.inf],[[0, 1]])
+                                 x^i\mathbb{I}(x\geq a),i>=0  -> PolynomialFunction([a,np.inf],[[0...0 (#i), 1]])
         '''
         assert len(input_endpoints)-1 == len(coefficients)        
         assert input_endpoints[-1]    == np.inf
         assert input_endpoints        == sorted(input_endpoints)
-        self._input_endpoints = input_endpoints
+        self._input_endpoints = copy.deepcopy(input_endpoints)
         self._coefficients    = copy.deepcopy(coefficients)
-        self._threshold_level = self._input_endpoints[0]        
+        self._threshold_level = self._input_endpoints[0]
     @property 
     def input_endpoints(self):
         return self._input_endpoints
@@ -42,12 +42,14 @@ class PolynomialFunction:
     @property
     def threshold_level(self):
         return self._threshold_level
+
     def multiply(self, multiple: float) -> None:
         for coefficient in self.coefficients:
             for i in range(len(coefficient)):
                 coefficient[i]*=multiple
 
     def integration_riser(self,order : int = 1) -> 'PolynomialFunction':
+
         assert order>=0
         if order == 0:
             return self
@@ -104,19 +106,19 @@ def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[Polynomia
     input_endpoints = list(set(input_endpoints))
     input_endpoints.sort()
     if G_Es:
-        constraint_ellipsoid_coefficient = mf.Expr.mul(M.getParameter('rSigma_sqrtminv'),M.getVariable('u'))
+        constraint_ellipsoid_coefficient = mf.Expr.mul(M.getParameter('rSigma_sqrtminv'), M.getVariable('u'))
     if G_Rs:
-        constraint_rectangle_coefficient = mf.Expr.sub(M.getVariable('lambda1'),M.getVariable('lambda2'))
+        constraint_rectangle_coefficient = mf.Expr.sub(M.getVariable('lambda1'), M.getVariable('lambda2'))
         
     for interval_index in range(len(input_endpoints)-1):
         interval_left = input_endpoints[interval_index]
         interval_right = input_endpoints[interval_index+1]
         H_bisect_rpt    = bisect.bisect_right(H.input_endpoints, interval_left)
-        H_each_interval    =  H.coefficients[H_bisect_rpt-1] if H_bisect_rpt>=1 else [0]
-        if G_Es:        
+        H_each_interval    =  H.coefficients[H_bisect_rpt-1] if H_bisect_rpt >= 1 else [0]
+        if G_Es:
             G_E_bisect_rpts = [bisect.bisect_right(G_E.input_endpoints, interval_left) for G_E in G_Es] 
             G_Es_each_interval = [G_E.coefficients[G_E_bisect_rpt-1] if G_E_bisect_rpt>=1 else [0] for G_E, G_E_bisect_rpt in zip(G_Es,G_E_bisect_rpts)  ]              
-        if G_Rs:            
+        if G_Rs:
             G_R_bisect_rpts = [bisect.bisect_right(G_R.input_endpoints, interval_left) for G_R in G_Rs]
             G_Rs_each_interval = [G_R.coefficients[G_R_bisect_rpt-1] if G_R_bisect_rpt>=1 else [0] for G_R, G_R_bisect_rpt in zip(G_Rs,G_R_bisect_rpts)  ]
 
@@ -186,6 +188,7 @@ def optimization(D_riser_number: int = None , eta: float = None, eta_lb: float =
                  h: 'PolynomialFunction' = None,
                  g_Es: List['PolynomialFunction'] = None, mu_value: np.ndarray = None, Sigma: np.ndarray = None, radius: float = None,
                  g_Rs: List['PolynomialFunction'] = None, mu_lb_value: np.ndarray = None, mu_ub_value: np.ndarray = None) -> float:
+
     if D_riser_number is None or threshold_level is None or h is None or (g_Es is None and g_Rs is None):
         assert False
     if D_riser_number == 1:
@@ -240,15 +243,27 @@ def optimization(D_riser_number: int = None , eta: float = None, eta_lb: float =
             G_Es = [g_E.integration_riser(D_riser_number) for g_E in g_Es]
             for G in G_Es:
                 G.multiply(nu)
-        rSigma_sqrtminv_value = np.linalg.inv(sqrtm(radius * Sigma))
+        if Sigma.size==1:
+            rSigma_sqrtminv_value = 1/np.sqrt(radius * Sigma)
+        else:
+            rSigma_sqrtminv_value = np.linalg.inv(sqrtm(radius * Sigma))
+
         mu = M.parameter("mu_value",len(mu_value))
         mu.setValue(mu_value.tolist())
-        rSigma_sqrtminv = M.parameter("rSigma_sqrtminv",rSigma_sqrtminv_value.shape[0],rSigma_sqrtminv_value.shape[1])
+        if Sigma.size==1:
+            rSigma_sqrtminv = M.parameter("rSigma_sqrtminv", 1,1)
+        else:
+            rSigma_sqrtminv = M.parameter("rSigma_sqrtminv", rSigma_sqrtminv_value.shape[0], rSigma_sqrtminv_value.shape[1])
         rSigma_sqrtminv.setValue(rSigma_sqrtminv_value.tolist())
         lambda_ = M.variable("lambda",mf.Domain.greaterThan(0))
         u       = M.variable("u",mf.Domain.unbounded(mu.getSize()))
         M.constraint("second-order-cone",  mf.Var.vstack(lambda_,u),mf.Domain.inQCone())
-        ellipsoid_obj_expr = mf.Expr.add(lambda_,
+        if Sigma.size==1:
+            ellipsoid_obj_expr = mf.Expr.add(lambda_,
+                                         mf.Expr.mul(mf.Expr.mul(mf.Expr.reshape(u,1,1),
+                                                                 rSigma_sqrtminv),mu))
+        else:
+            ellipsoid_obj_expr = mf.Expr.add(lambda_,
                                          mf.Expr.mul(mf.Expr.mul(mf.Expr.reshape(u,1,u.getSize()),
                                                                  rSigma_sqrtminv),
                                                      mu
@@ -299,8 +314,7 @@ def optimization(D_riser_number: int = None , eta: float = None, eta_lb: float =
 def test_PolynomialFunction_integration_riser():
     ### indicator functions
     ####  \mathbb{I}(x\geq a)       -> PolynomialFunction([a],[[1]])
-    poly1 = PolynomialFunction([1,np.inf],[[1]])
-    assert poly1.integration_riser() == PolynomialFunction([1,np.inf],[[-1,1]])    
+    assert poly1.integration_riser() == PolynomialFunction([1,np.inf],[[-1,1]])
     assert poly1.integration_riser(1) == PolynomialFunction([1,np.inf],[[-1,1]])
     assert poly1.integration_riser(2) == PolynomialFunction([1,np.inf],[[1/2,-1,1/2]])    
     assert poly1.integration_riser(3) == PolynomialFunction([1,np.inf],[[-1/6,1/2,-1/2,1/6]])

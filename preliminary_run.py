@@ -1,5 +1,5 @@
 from optimization_engine import optimization, PolynomialFunction
-
+import numpy as np
 
 def test_0_ks_ex0():
     mu_lb_value = np.array([0.6])
@@ -297,18 +297,19 @@ def test_2_chi2_ex1():
     g_Es = [PolynomialFunction([threshold_level, np.inf], [[0] * i + [1]]) for i in range(d_E)]
     calculated_values.append(optimization(D_riser_number=D_riser_number, eta_lb = eta_lb, eta_ub = eta_ub, nu = nu,
                                           threshold_level=threshold_level,
-              e                             h=h,
-                                          g_Es=g_Es,
-                                          mu_value=mu_value, Sigma=Sigma, radius=radius))
+                                          h = h,
+                                          g_Es = g_Es,
+                                          mu_value = mu_value, Sigma = Sigma, radius = radius))
 
     d_E = 2
-    mu_value = mu_va elue[:d_E]
+    mu_value = mu_value[:d_E]
+    Sigma = Sigma[:d_E, :d_E]
     g_Es = [PolynomialFunction([threshold_level, np.inf], [[0] * i + [1]]) for i in range(d_E)]
     calculated_values.append(optimization(D_riser_number=D_riser_number, eta_lb = eta_lb, eta_ub = eta_ub, nu = nu,
                                           threshold_level=threshold_level,
-                                          h=h,
-                                          g_Es=g_Es,
-                                          mu_value=mu_value, Sigma=Sigma, radius=radius))
+                                          h = h,
+                                          g_Es = g_Es,
+                                          mu_value = mu_value, Sigma = Sigma, radius = radius))
 
     d_E = 1
     mu_value = mu_value[:d_E]
@@ -325,9 +326,6 @@ def test_2_chi2_ex1():
         '/'.join([str(calculated_value) for calculated_value in calculated_values[::-1]])))
 
 if __name__ == '__main__':
-    # test_0_ks_ex1()
-    # test_0_ks_ex2()
-    # test_0_chi2_ex1()
     test_0_ks_ex1()
     test_1_ks_ex1()
     test_2_ks_ex1()

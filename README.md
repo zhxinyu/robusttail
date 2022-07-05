@@ -2,5 +2,9 @@
 
 
 ```angular2html
-python3 preliminary_run_2.py
+## To run in parallel tail probability estimation problem:
+python3 tableOne.py
+
+## To run single tail probabiltiy estimation:
+python3 tailProbabilityPrediction.py
 ```

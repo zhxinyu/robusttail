@@ -1,4 +1,5 @@
 from rpy2.robjects.packages import importr
+from rpy2.rinterface_lib.embedded import RRuntimeError
 from scipy.stats import norm, chi2, kstwobign
 import numpy as np
 import random
@@ -8,9 +9,14 @@ import rpy2.robjects as ro
 from rpy2.robjects import numpy2ri
 numpy2ri.activate()
 importr('base')
-importr('utils')
+utils = importr('utils')
 importr('stats')
-importr('ks')
+try:
+    importr('ks')
+except RRuntimeError:
+    utils.install_packages('ks', contribulr = "https://cran.microsoft.com/")
+    importr('ks')
+
 
 ############################################################################################################
 ############################################################################################################

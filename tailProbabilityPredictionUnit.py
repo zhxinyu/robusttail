@@ -17,7 +17,7 @@ def OptimizationWithRectangularConstraint(D: int, inputData: np.ndarray,
     #############################################################################################################
 
     threshold = np.quantile(inputData, thresholdPercentage)
-    if type(thresholdPercentage) == float:
+    if type(thresholdPercentage) == float or type(thresholdPercentage) == np.float64:
         numMultiThreshold = 1
     else:
         numMultiThreshold = len(thresholdPercentage)
@@ -67,7 +67,7 @@ def OptimizationWithEllipsodialConstraint(D: int, inputData: np.ndarray,
     g_Es = [PolynomialFunction([threshold, np.inf], [[0] * i + [1]])
             for i in range(gEllipsoidalDimension)]
 
-    if type(thresholdPercentage) == float:
+    if type(thresholdPercentage) == float or type(thresholdPercentage) == np.float64:
         numMultiThreshold = 1
     else:
         numMultiThreshold = len(thresholdPercentage)

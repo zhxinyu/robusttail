@@ -6,7 +6,7 @@ from scipy.stats import gamma, lognorm, pareto, genpareto
 
 def tailProbabilityPredictionPerRep(dataModule,
                                     percentageLHS: float, percentageRHS: float,
-                                    dataSize: int, thresholdPercentage: float,
+                                    dataSize: int, thresholdPercentage: typing.Union[float, typing.List[float]],
                                     gEllipsoidalDimension: int,
                                     alpha: float,
                                     random_state: int) -> typing.List[float]:

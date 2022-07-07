@@ -4,7 +4,7 @@ from scipy.stats import gamma, lognorm, pareto, genpareto
 dataModuleToDefaultParamDict = {gamma: {"a": 2.5, "scale": 1.5},  # a is the shape parameter
                                 # s: standard deviation, loc: mean
                                 lognorm:  {"loc": 0, "s": 1},
-                                pareto: {"b": 2, "scale": 20},  # b: shape
+                                pareto: {"b": 2, "scale": 5},  # b: shape
                                 genpareto: {"c": 2}}  # c: shape
 
 

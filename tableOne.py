@@ -20,16 +20,10 @@ stringToDataModule = {"gamma": gamma,
 
 
 def parallelRun(poolParam):
-    dataDistribution, dataSize, percentageLHS, thresholdPercentage, random_state = poolParam
-    metaDataDict["dataSize"] = dataSize
-    metaDataDict["percentageLHS"] = percentageLHS
-    metaDataDict["percentageRHS"] = percentageLHS+0.05
-    metaDataDict["thresholdPercentage"] = thresholdPercentage
-
+    dataDistribution, metaDataDict, random_state = poolParam
     metaDataDict["random_state"] = random_state
-    val = tailP.tailProbabilityPredictionPerRep(
+    return tailP.tailProbabilityPredictionPerRep(
         stringToDataModule[dataDistribution], **metaDataDict)
-    return val
 
 
 if __name__ == '__main__':
@@ -37,17 +31,17 @@ if __name__ == '__main__':
     randomSeed = 20220222
     dataDistributions = ['gamma', 'lognorm']
     thresholdPercentages = np.linspace(0.6, 0.85, 11)
+    # served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
     percentageLHSs = np.linspace(0.9, 0.99, 10)
     dataSizes = [500, 800, 1000, 1200, 1500, 1800, 2000, 2500, 3000]
     for dataDistribution, dataSize, percentageLHS, thresholdPercentage in itertools.product(*[dataDistributions, dataSizes, percentageLHSs, thresholdPercentages]):
-
-        poolParamList = [(dataDistribution, dataSize, percentageLHS, thresholdPercentage, random_state+randomSeed)
-                         for random_state in range(nExperimentReptition)]
         metaDataDict["dataSize"] = dataSize
         metaDataDict["percentageLHS"] = percentageLHS
         metaDataDict["percentageRHS"] = percentageLHS+0.005
         metaDataDict["thresholdPercentage"] = thresholdPercentage
-
+        assert "random_state" not in metaDataDict
+        poolParamList = [(dataDistribution, metaDataDict, random_state+randomSeed)
+                         for random_state in range(nExperimentReptition)]
         FILE_NAME = ["dataDistribution="+dataDistribution]
         FILE_NAME += [key+"="+str(metaDataDict[key])
                       for key in metaDataDict]

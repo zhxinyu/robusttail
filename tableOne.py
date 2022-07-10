@@ -54,15 +54,14 @@ if __name__ == '__main__':
         else:
             with Pool() as p:
                 df = pd.DataFrame(np.asarray(p.map(parallelRun, poolParamList))
-                             )
+                                  )
                 print(df.mean(axis=0).values)
                 df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                                      header=["(0,KS)", "(1,KS)", "(2,KS)",
-                                              "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
-                                      index=True,
-                                      index_label="Experiment Repetition Index")
+                          header=["(0,KS)", "(1,KS)", "(2,KS)",
+                                  "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                          index=True,
+                          index_label="Experiment Repetition Index")
                 del df
-                
+
             print("Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
-

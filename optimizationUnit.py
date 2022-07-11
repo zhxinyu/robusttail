@@ -1,5 +1,5 @@
 from optimizationEngine import optimization, PolynomialFunction
-from calibration import etaEllipsoidalSpecification, nuEllipsoidalSpecification, zOfChiSquare, zOfKolmogorov, pHatRectangularSpecification, etaRectangularSpecification, nuRectangularSpecification
+from calibration import etaSpecification, nuSpecification, zOfChiSquare, zOfKolmogorov
 import numpy as np
 from copy import deepcopy
 import typing
@@ -44,13 +44,13 @@ def Optimization_Monetone_ChiSquare(data: np.ndarray,
     ## (1, chi2)
     D_riser_number = 1
     gEllipsoidalDimension = len(MomentConstraintFunctions)
-    eta = etaEllipsoidalSpecification(data=data,
-                                      threshold=threshold,
-                                      bootstrappingSize=bootstrappingSize,
-                                      bootstrappingSeed=bootstrappingSeed,
-                                      alpha=alpha,
-                                      D_riser_number=D_riser_number,
-                                      numMultiThreshold=numMultiThreshold)
+    eta = etaSpecification(data=data,
+                           threshold=threshold,
+                           alpha=alpha,
+                           bootstrappingSize=bootstrappingSize,
+                           bootstrappingSeed=bootstrappingSeed,
+                           D_riser_number=D_riser_number,
+                           numMultiThreshold=numMultiThreshold)
     z = zOfChiSquare(alpha=alpha,
                      D_riser_number=D_riser_number,
                      gDimension=gEllipsoidalDimension,
@@ -78,20 +78,20 @@ def Optimization_Convex_ChiSquare(data: np.ndarray,
     D_riser_number = 2
     gEllipsoidalDimension = len(MomentConstraintFunctions)
 
-    [eta_lb, eta_ub] = etaEllipsoidalSpecification(data=data,
-                                                   threshold=threshold,
-                                                   bootstrappingSize=bootstrappingSize,
-                                                   bootstrappingSeed=bootstrappingSeed,
-                                                   alpha=alpha,
-                                                   D_riser_number=D_riser_number,
-                                                   numMultiThreshold=numMultiThreshold)
+    [eta_lb, eta_ub] = etaSpecification(data=data,
+                                        alpha=alpha,
+                                        threshold=threshold,
+                                        bootstrappingSize=bootstrappingSize,
+                                        bootstrappingSeed=bootstrappingSeed,
+                                        D_riser_number=D_riser_number,
+                                        numMultiThreshold=numMultiThreshold)
 
-    nu = nuEllipsoidalSpecification(data=data,
-                                    threshold=threshold,
-                                    bootstrappingSize=bootstrappingSize,
-                                    bootstrappingSeed=bootstrappingSeed,
-                                    alpha=alpha,
-                                    numMultiThreshold=numMultiThreshold)
+    nu = nuSpecification(data=data,
+                         threshold=threshold,
+                         alpha=alpha,
+                         bootstrappingSize=bootstrappingSize,
+                         bootstrappingSeed=bootstrappingSeed,
+                         numMultiThreshold=numMultiThreshold)
     z = zOfChiSquare(alpha=alpha,
                      D_riser_number=D_riser_number,
                      gDimension=gEllipsoidalDimension,
@@ -118,23 +118,15 @@ def Optimization_Plain_Kolmogorov(data: np.ndarray,
     dataOverThreshold = np.sort(data[data > threshold])
     sizeOverThreshold = np.sum(data > threshold)
     sizeOnData = data.shape[0]
-    sigmaHat = np.std(data > threshold)
 
     z = zOfKolmogorov(alpha=alpha,
                       D_riser_number=D_riser_number,
                       numMultiThreshold=numMultiThreshold)
-    mu_lb_value = np.maximum(0, (sizeOverThreshold+1-np.arange(
-        1, sizeOverThreshold+1))/sizeOverThreshold-z/np.sqrt(sizeOverThreshold))
-    mu_ub_value = np.minimum(1, (sizeOverThreshold-np.arange(
-        1, sizeOverThreshold+1))/sizeOverThreshold+z/np.sqrt(sizeOverThreshold))
+    mu_lb_value = np.maximum(0, (sizeOnData+1-np.arange(
+        sizeOnData-sizeOverThreshold+1, sizeOnData+1))/sizeOnData-z/np.sqrt(sizeOnData))
+    mu_ub_value = np.minimum(1, (sizeOnData-np.arange(
+        sizeOnData-sizeOverThreshold+1, sizeOnData+1))/sizeOnData+z/np.sqrt(sizeOnData))
 
-    pHat = pHatRectangularSpecification(sizeOnData=sizeOnData,
-                                        sizeOverThreshold=sizeOverThreshold,
-                                        sigmaHat=sigmaHat,
-                                        alpha=alpha,
-                                        D_riser_number=D_riser_number,
-                                        numMultiThreshold=numMultiThreshold)
-    newObjectiveFunction.multiply(pHat)
     ConstraintFunctions = [PolynomialFunction(
         [xi, np.inf], [[0]*0+[1]]) for xi in dataOverThreshold]
 
@@ -158,33 +150,25 @@ def Optimization_Monotone_Kolmogorov(data: np.ndarray,
     dataOverThreshold = np.sort(data[data > threshold])
     sizeOverThreshold = np.sum(data > threshold)
     sizeOnData = data.shape[0]
-    sigmaHat = np.std(data > threshold)
 
     z = zOfKolmogorov(alpha=alpha,
                       D_riser_number=D_riser_number,
                       numMultiThreshold=numMultiThreshold)
-    mu_lb_value = np.maximum(0, (sizeOverThreshold+1-np.arange(
-        1, sizeOverThreshold+1))/sizeOverThreshold-z/np.sqrt(sizeOverThreshold))
-    mu_ub_value = np.minimum(1, (sizeOverThreshold-np.arange(
-        1, sizeOverThreshold+1))/sizeOverThreshold+z/np.sqrt(sizeOverThreshold))
+    mu_lb_value = np.maximum(0, (sizeOnData+1-np.arange(
+        sizeOnData-sizeOverThreshold+1, sizeOnData+1))/sizeOnData-z/np.sqrt(sizeOnData))
+    mu_ub_value = np.minimum(1, (sizeOnData-np.arange(
+        sizeOnData-sizeOverThreshold+1, sizeOnData+1))/sizeOnData+z/np.sqrt(sizeOnData))
 
-    pHat = pHatRectangularSpecification(sizeOnData=sizeOnData,
-                                        sizeOverThreshold=sizeOverThreshold,
-                                        sigmaHat=sigmaHat,
-                                        alpha=alpha,
-                                        D_riser_number=D_riser_number,
-                                        numMultiThreshold=numMultiThreshold)
-    newObjectiveFunction.multiply(pHat)
     ConstraintFunctions = [PolynomialFunction(
         [xi, np.inf], [[0]*0+[1]]) for xi in dataOverThreshold]
 
-    eta = etaRectangularSpecification(data=data,
-                                      threshold=threshold,
-                                      alpha=alpha,
-                                      D_riser_number=D_riser_number,
-                                      bootstrappingSize=bootstrappingSize,
-                                      bootstrappingSeed=bootstrappingSeed,
-                                      numMultiThreshold=numMultiThreshold)
+    eta = etaSpecification(data=data,
+                           threshold=threshold,
+                           alpha=alpha,
+                           D_riser_number=D_riser_number,
+                           bootstrappingSize=bootstrappingSize,
+                           bootstrappingSeed=bootstrappingSeed,
+                           numMultiThreshold=numMultiThreshold)
 
     return optimization(D_riser_number=D_riser_number,
                         eta=eta,
@@ -207,40 +191,33 @@ def Optimization_Convex_Kolmogorov(data: np.ndarray,
     dataOverThreshold = np.sort(data[data > threshold])
     sizeOverThreshold = np.sum(data > threshold)
     sizeOnData = data.shape[0]
-    sigmaHat = np.std(data > threshold)
+
 
     z = zOfKolmogorov(alpha=alpha,
                       D_riser_number=D_riser_number,
                       numMultiThreshold=numMultiThreshold)
-    mu_lb_value = np.maximum(0, (sizeOverThreshold+1-np.arange(
-        1, sizeOverThreshold+1))/sizeOverThreshold-z/np.sqrt(sizeOverThreshold))
-    mu_ub_value = np.minimum(1, (sizeOverThreshold-np.arange(
-        1, sizeOverThreshold+1))/sizeOverThreshold+z/np.sqrt(sizeOverThreshold))
+    mu_lb_value = np.maximum(0, (sizeOnData+1-np.arange(
+        sizeOnData-sizeOverThreshold+1, sizeOnData+1))/sizeOnData-z/np.sqrt(sizeOnData))
+    mu_ub_value = np.minimum(1, (sizeOnData-np.arange(
+        sizeOnData-sizeOverThreshold+1, sizeOnData+1))/sizeOnData+z/np.sqrt(sizeOnData))
 
-    pHat = pHatRectangularSpecification(sizeOnData=sizeOnData,
-                                        sizeOverThreshold=sizeOverThreshold,
-                                        sigmaHat=sigmaHat,
-                                        alpha=alpha,
-                                        D_riser_number=D_riser_number,
-                                        numMultiThreshold=numMultiThreshold)
-    newObjectiveFunction.multiply(pHat)
     ConstraintFunctions = [PolynomialFunction(
         [xi, np.inf], [[0]*0+[1]]) for xi in dataOverThreshold]
 
-    [eta_lb, eta_ub] = etaRectangularSpecification(data=data,
-                                                   threshold=threshold,
-                                                   alpha=alpha,
-                                                   D_riser_number=D_riser_number,
-                                                   bootstrappingSize=bootstrappingSize,
-                                                   bootstrappingSeed=bootstrappingSeed,
-                                                   numMultiThreshold=numMultiThreshold)
+    [eta_lb, eta_ub] = etaSpecification(data=data,
+                                        threshold=threshold,
+                                        alpha=alpha,
+                                        D_riser_number=D_riser_number,
+                                        bootstrappingSize=bootstrappingSize,
+                                        bootstrappingSeed=bootstrappingSeed,
+                                        numMultiThreshold=numMultiThreshold)
 
-    nu = nuRectangularSpecification(data=data,
-                                    threshold=threshold,
-                                    bootstrappingSize=bootstrappingSize,
-                                    bootstrappingSeed=bootstrappingSeed,
-                                    alpha=alpha,
-                                    numMultiThreshold=numMultiThreshold)
+    nu = nuSpecification(data=data,
+                         threshold=threshold,
+                         alpha=alpha,
+                         bootstrappingSize=bootstrappingSize,
+                         bootstrappingSeed=bootstrappingSeed,
+                         numMultiThreshold=numMultiThreshold)
 
     return optimization(D_riser_number=D_riser_number,
                         eta_lb=eta_lb, eta_ub=eta_ub, nu=nu,

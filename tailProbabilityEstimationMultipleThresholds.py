@@ -31,7 +31,7 @@ if __name__ == '__main__':
     if not os.path.isdir(FILE_DIR):
        os.mkdir(FILE_DIR)     
 
-    nExperimentReptition = 200
+    nExperimentReptition = 10
     trueValue = 0.005
     randomSeed = 20220222
     dataDistributions = ['gamma', 'lognorm']
@@ -75,4 +75,5 @@ if __name__ == '__main__':
                     del df
                 print("Success!")                    
             except:
-                print("Fail!")
+                print("Fail on "+os.path.join(FILE_DIR, FILE_NAME))
+

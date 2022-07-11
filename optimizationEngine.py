@@ -349,7 +349,7 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
         mf.Expr.add(kappa, ellipsoid_obj_expr), rectangle_obj_expr))
     ## infinite constraint
     infinite_constraint(M, H, G_Es, G_Rs)
-
+    
     ## solve!
     M.solve()
     ## solution
@@ -359,6 +359,7 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
 def test_PolynomialFunction_integration_riser():
     ### indicator functions
     ####  \mathbb{I}(x\geq a)       -> PolynomialFunction([a],[[1]])
+    poly1 = PolynomialFunction([1, np.inf], [[1]])
     assert poly1.integration_riser() == PolynomialFunction([
         1, np.inf], [[-1, 1]])
     assert poly1.integration_riser(

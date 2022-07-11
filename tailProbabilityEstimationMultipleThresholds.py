@@ -1,5 +1,5 @@
 from multiprocessing import Pool
-import tailProbabilityPrediction as tailP
+import tailProbabilityEstimationUnit as tpe
 from scipy.stats import gamma, lognorm, pareto, genpareto
 import pandas as pd
 import numpy as np
@@ -8,7 +8,7 @@ import itertools
 FILE_DIR = "testResult"
 metaDataDict = {"dataSize": 500,
                 "percentageLHS": 0.99,
-                "percentageRHS": 0.999,
+                "percentageRHS": 0.995,
                 "thresholdPercentage": 0.7,
                 "alpha": 0.05,
                 "gEllipsoidalDimension": 3}
@@ -22,27 +22,35 @@ stringToDataModule = {"gamma": gamma,
 def parallelRun(poolParam):
     dataDistribution, metaDataDict, random_state = poolParam
     metaDataDict["random_state"] = random_state
-    return tailP.tailProbabilityPredictionPerRep(
+    return tpe.tailProbabilityEstimationPerRep(
         stringToDataModule[dataDistribution], **metaDataDict)
 
 
 if __name__ == '__main__':
+    ## generate a folder `testResult` if it does not exist.
+    if not os.path.isdir(FILE_DIR):
+       os.mkdir(FILE_DIR)     
+
     nExperimentReptition = 200
+    trueValue = 0.005
     randomSeed = 20220222
     dataDistributions = ['gamma', 'lognorm']
-    thresholdPercentages = np.linspace(0.6, 0.85, 11)
-    # served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
-    percentageLHSs = np.linspace(0.9, 0.99, 10)
+    ## as the min of the multi-threshold list, e.g. multi-threshold list: [0.6, 0.61, 0.62, 0.63, 0.64]    
+    thresholdPercentages = [0.6, 0.65, 0.70, 0.75, 0.8]
+    ## served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
+    percentageLHSs = np.linspace(0.9, 0.99, 10).tolist()
     dataSizes = [500, 800]
     for dataDistribution, dataSize, percentageLHS, thresholdPercentage in itertools.product(*[dataDistributions, dataSizes, percentageLHSs, thresholdPercentages]):
         metaDataDict["dataSize"] = dataSize
         metaDataDict["percentageLHS"] = percentageLHS
-        metaDataDict["percentageRHS"] = percentageLHS+0.005
-        metaDataDict["thresholdPercentage"] = thresholdPercentage
+        metaDataDict["percentageRHS"] = percentageLHS+trueValue
+        metaDataDict["thresholdPercentage"] = [thresholdPercentage +
+                                               increment for increment in [0, 0.01, 0.02, 0.03, 0.04]]
         assert "random_state" not in metaDataDict
         poolParamList = [(dataDistribution, metaDataDict, random_state+randomSeed)
                          for random_state in range(nExperimentReptition)]
-        FILE_NAME = ["dataDistribution="+dataDistribution]
+        FILE_NAME = ["tailProbabilityEstimation"]
+        FILE_NAME += ["dataDistribution="+dataDistribution]
         FILE_NAME += [key+"="+str(metaDataDict[key])
                       for key in metaDataDict]
         FILE_NAME += ["randomSeed="+str(randomSeed)]
@@ -52,16 +60,19 @@ if __name__ == '__main__':
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
         else:
-            with Pool() as p:
-                df = pd.DataFrame(np.asarray(p.map(parallelRun, poolParamList))
-                                  )
-                print(df.mean(axis=0).values)
-                df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                          header=["(0,KS)", "(1,KS)", "(2,KS)",
-                                  "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
-                          index=True,
-                          index_label="Experiment Repetition Index")
-                del df
-
-            print("Write: " +
-                  os.path.join(FILE_DIR, FILE_NAME))
+            print("Writing: " +
+                os.path.join(FILE_DIR, FILE_NAME))
+            try:
+                with Pool() as p:
+                    df = pd.DataFrame(np.asarray(p.map(parallelRun, poolParamList))
+                                    )
+                    print(df.mean(axis=0).values)
+                    df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
+                            header=["(0,KS)", "(1,KS)", "(2,KS)",
+                                    "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                            index=True,
+                            index_label="Experiment Repetition Index")
+                    del df
+                print("Success!")                    
+            except:
+                print("Fail!")

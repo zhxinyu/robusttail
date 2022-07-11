@@ -95,7 +95,7 @@ def off_diag_auxmat(k: int, sum_index: int) -> List[List[int]]:
 
 
 def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[PolynomialFunction], G_Rs: List[PolynomialFunction]) -> None:
-    input_endpoints = H.input_endpoints[::]
+    input_endpoints = H.input_endpoints[:-1]
     if len(G_Es) == 0:
         G_Es = None
     if len(G_Rs) == 0:
@@ -103,16 +103,17 @@ def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[Polynomia
     if G_Es and G_Rs:
         for G_E in G_Es:
             for G_R in G_Rs:
-                input_endpoints += G_R.input_endpoints
-            input_endpoints += G_E.input_endpoints
+                input_endpoints += G_R.input_endpoints[::-1]
+            input_endpoints += G_E.input_endpoints[:-1]
     elif G_Es:
         for G_E in G_Es:
-            input_endpoints += G_E.input_endpoints
+            input_endpoints += G_E.input_endpoints[:-1]
     elif G_Rs:
         for G_R in G_Rs:
-            input_endpoints += G_R.input_endpoints
+            input_endpoints += G_R.input_endpoints[:-1]
     input_endpoints = list(set(input_endpoints))
     input_endpoints.sort()
+    input_endpoints += [np.inf]
     if G_Es:
         constraint_ellipsoid_coefficient = mf.Expr.mul(
             M.getParameter('rSigma_sqrtminv'), M.getVariable('u'))
@@ -244,16 +245,8 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
         kappa = M.variable("kappa", 1, mf.Domain.unbounded(1))
         if D_riser_number == 1:
             H.multiply(eta)
-            # for g in g_Rs:
-            #     g.multiply(eta)
-            # for g in g_Es:
-            #     g.multiply(eta)
         if D_riser_number == 2:
             H.multiply(nu)
-            # for g in g_Rs:
-            #     g.multiply(nu)
-            # for g in g_Es:
-            #     g.multiply(nu)
             if mu_lb_value is None:
                 mu_lb_value = np.array([eta_lb])
             else:

@@ -7,11 +7,7 @@ import numpy as np
 
 def quantileEstimationBinarySearchUnit(D: int, inputData: np.ndarray,
                                        thresholdPercentage: typing.Union[float, typing.List[float]],
-                                       quantitleValue: float, alpha: float, random_state: int, 
-                                       constraintType: str, 
-                                       gEllipsoidalDimension: int) -> float:
-    if constraintType != "RectangularConstraint" and constraintType != "EllipsodialConstraint":
-        assert False
+                                       quantitleValue: float, gEllipsoidalDimension: int, alpha: float, random_state: int) -> float:
     if type(thresholdPercentage) == float:
         startQuantilePoint = np.quantile(inputData, thresholdPercentage)
     else:
@@ -24,20 +20,12 @@ def quantileEstimationBinarySearchUnit(D: int, inputData: np.ndarray,
     midPoint = 2*lhsPoint
     ## we assume that max P(X>=startQuantilePoint) > targetValue.
     while np.abs(currentValue-targetValue) > 1e-6:
-        if constraintType == "RectangularConstraint":
-            currentValue = ou.OptimizationWithRectangularConstraint(D,
-                                inputData,
-                                thresholdPercentage,
-                                alpha,
-                                midPoint, np.inf,
-                                inputData.size, 7*random_state+1)            
-        else:
-            currentValue = ou.OptimizationWithEllipsodialConstraint(D,
-                                inputData,
-                                thresholdPercentage,
-                                alpha,
-                                midPoint, np.inf, gEllipsoidalDimension,
-                                inputData.size, 7*random_state+1)
+        currentValue = ou.OptimizationWithEllipsodialConstraint(D,
+                            inputData,
+                            thresholdPercentage,
+                            alpha,
+                            midPoint, np.inf, gEllipsoidalDimension,
+                            inputData.size, 7*random_state+1)
         outputMidPoint = midPoint
         if currentValue > targetValue:
             lhsPoint = midPoint
@@ -50,68 +38,28 @@ def quantileEstimationBinarySearchUnit(D: int, inputData: np.ndarray,
         print(currentValue, lhsPoint)
     return outputMidPoint
 
-
-def quantileEstimationWithRectangularConstraintPerRep(dataModule,
-                                                      quantitleValue: float,
-                                                      dataSize: int, thresholdPercentage: typing.Union[float, typing.List[float]],
-                                                      alpha: float,
-                                                      random_state: int) -> typing.List[float]:
-    inputData = dpu.RawDataGeneration(
-        dataModule, dpu.dataModuleToDefaultParamDict[dataModule], dataSize, random_state)
-    outputPerRep = [0]*2
-    outputPerRep[1] = quantileEstimationBinarySearchUnit(1, inputData,
-                                                         thresholdPercentage,
-                                                         quantitleValue, alpha, 7*random_state+1, "RectangularConstraint", 0)
-    outputPerRep[2] = quantileEstimationBinarySearchUnit(2, inputData,
-                                                         thresholdPercentage,
-                                                         quantitleValue, alpha, 7*random_state+1, "RectangularConstraint", 0)
-    return outputPerRep
-
-
-def quantileEstimationWithEllipsodialConstraintPerRep(dataModule,
-                                                      quantitleValue: float,
-                                                      dataSize: int, thresholdPercentage: typing.Union[float, typing.List[float]],
-                                                      gEllipsoidalDimension: int,
-                                                      alpha: float,
-                                                      random_state: int) -> typing.List[float]:
-    inputData = dpu.RawDataGeneration(
-        dataModule, dpu.dataModuleToDefaultParamDict[dataModule], dataSize, random_state)
-    outputPerRep = [0]*3
-    outputPerRep[0] = quantileEstimationBinarySearchUnit(0, inputData,
-                                                         thresholdPercentage,
-                                                         quantitleValue, alpha, 7*random_state+1, "EllipsodialConstraint", gEllipsoidalDimension)
-
-    outputPerRep[1] = quantileEstimationBinarySearchUnit(1, inputData,
-                                                         thresholdPercentage,
-                                                         quantitleValue, alpha, 7*random_state+1, "EllipsodialConstraint", gEllipsoidalDimension)
-
-    outputPerRep[2] = quantileEstimationBinarySearchUnit(2, inputData,
-                                                         thresholdPercentage,
-                                                         quantitleValue, alpha, 7*random_state+1, "EllipsodialConstraint", gEllipsoidalDimension)
-    return outputPerRep
-
-
 def quantileEstimationnPerRep(dataModule,
                               quantitleValue: float,
                               dataSize: int, thresholdPercentage: typing.Union[float, typing.List[float]],
                               gEllipsoidalDimension: int,
                               alpha: float,
                               random_state: int) -> typing.List[float]:
-    outputPerRep = []
-    # quantileEstimationWithRectangularConstraintPerRep(dataModule,
-    #                                                                  quantitleValue,
-    #                                                                  dataSize, thresholdPercentage,
-    #                                                                  alpha,
-    #                                                                  random_state)
-    outputPerRep.extend(
-        quantileEstimationWithEllipsodialConstraintPerRep(dataModule,
-                                                          quantitleValue,
-                                                          dataSize, thresholdPercentage,
-                                                          gEllipsoidalDimension,
-                                                          alpha,
-                                                          random_state))
-    return outputPerRep
 
+    inputData = dpu.RawDataGeneration(
+        dataModule, dpu.dataModuleToDefaultParamDict[dataModule], dataSize, random_state)
+    outputPerRep = [0]*3
+    outputPerRep[0] = quantileEstimationBinarySearchUnit(0, inputData,
+                                                         thresholdPercentage,
+                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1)
+
+    outputPerRep[1] = quantileEstimationBinarySearchUnit(1, inputData,
+                                                         thresholdPercentage,
+                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1)
+
+    outputPerRep[2] = quantileEstimationBinarySearchUnit(2, inputData,
+                                                         thresholdPercentage,
+                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1)
+    return outputPerRep
 
 if __name__ == '__main__':
     dataSize = 500

@@ -59,6 +59,8 @@ if __name__ == '__main__':
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
+            df = pd.read_csv(os.path.join(FILE_DIR, FILE_NAME), index_col="Experiment Repetition Index")
+            print(df.mean(axis=0).values)
         else:
             print("Writing: " +
                 os.path.join(FILE_DIR, FILE_NAME))

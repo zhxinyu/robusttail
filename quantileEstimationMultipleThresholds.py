@@ -31,7 +31,8 @@ if __name__ == '__main__':
        os.mkdir(FILE_DIR) 
     nExperimentReptition = 10
     randomSeed = 20220222
-    trueValue = 0.005
+    # trueValue = dpu.endPointGeneration(
+    #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
     dataDistributions = ['gamma', 'lognorm']
     thresholdPercentages = [0.6, 0.65, 0.70, 0.75, 0.8]
     # served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.

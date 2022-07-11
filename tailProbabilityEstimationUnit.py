@@ -101,13 +101,15 @@ if __name__ == '__main__':
     dataSize = 500
     trueValue = 0.005
     percentageLHS = 0.9
-    percentageRHS = percentageLHS+trueValue
+    percentageRHS = percentageLHS + trueValue
     thresholdPercentage = 0.7
     alpha = 0.05
     random_state = 20220222
     gEllipsoidalDimension = 3
+    print("A small example on tail probability estimation--single threshold.")
     print(tailProbabilityEstimationPerRep(
         gamma, percentageLHS, percentageRHS, dataSize, thresholdPercentage, gEllipsoidalDimension, alpha, random_state))
+    print("A small example on tail probability estimation--multiple thresholds.")        
     thresholdPercentage = [0.65, 0.7, 0.75, 0.8]
     print(tailProbabilityEstimationPerRep(
         gamma, percentageLHS, percentageRHS, dataSize, thresholdPercentage, gEllipsoidalDimension, alpha, random_state))

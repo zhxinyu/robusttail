@@ -103,7 +103,7 @@ def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[Polynomia
     if G_Es and G_Rs:
         for G_E in G_Es:
             for G_R in G_Rs:
-                input_endpoints += G_R.input_endpoints[::-1]
+                input_endpoints += G_R.input_endpoints[:-1]
             input_endpoints += G_E.input_endpoints[:-1]
     elif G_Es:
         for G_E in G_Es:
@@ -111,6 +111,7 @@ def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[Polynomia
     elif G_Rs:
         for G_R in G_Rs:
             input_endpoints += G_R.input_endpoints[:-1]
+    assert np.inf not in set(input_endpoints)
     input_endpoints = list(set(input_endpoints))
     input_endpoints.sort()
     input_endpoints += [np.inf]

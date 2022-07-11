@@ -2,6 +2,9 @@
 
 
 ```angular2html
+## To run all tasks.
+bash testRunOnAllTasks.sh
+
 ## To run in parallel tail probability estimation problem with single threshold:
 python3 tailProbabilityEstimationSingleThreshold.py
 

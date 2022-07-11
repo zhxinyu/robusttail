@@ -14,13 +14,13 @@ importr('stats')
 try:
     importr('ks')
 except RRuntimeError:
-    utils.install_packages('ks', contribulr = "https://cran.microsoft.com/")
+    utils.install_packages('ks', contribulr="https://cran.microsoft.com/")
     importr('ks')
 
 
 ############################################################################################################
 ############################################################################################################
-# Helper Function
+# Helper Function to generate parameters in optimization problems.
 ############################################################################################################
 ############################################################################################################
 

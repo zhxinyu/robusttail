@@ -1,14 +1,15 @@
-from optimization_engine import optimization, PolynomialFunction
+from optimizationEngine import optimization, PolynomialFunction
 from calibration import etaEllipsoidalSpecification, nuEllipsoidalSpecification, zOfChiSquare, zOfKolmogorov, pHatRectangularSpecification, etaRectangularSpecification, nuRectangularSpecification
 import numpy as np
 from copy import deepcopy
-from typing import List
+import typing
+
 
 
 def Optimization_Plain_ChiSquare(data: np.ndarray,
                                  threshold: float,
                                  ObjectiveFunction: PolynomialFunction,
-                                 MomentConstraintFunctions: List[PolynomialFunction],
+                                 MomentConstraintFunctions: typing.List[PolynomialFunction],
                                  mu: np.ndarray,
                                  Sigma: np.ndarray,
                                  bootstrappingSize: int,
@@ -33,7 +34,7 @@ def Optimization_Plain_ChiSquare(data: np.ndarray,
 def Optimization_Monetone_ChiSquare(data: np.ndarray,
                                     threshold: float,
                                     ObjectiveFunction: PolynomialFunction,
-                                    MomentConstraintFunctions: List[PolynomialFunction],
+                                    MomentConstraintFunctions: typing.List[PolynomialFunction],
                                     mu: np.ndarray,
                                     Sigma: np.ndarray,
                                     bootstrappingSize: int,
@@ -66,7 +67,7 @@ def Optimization_Monetone_ChiSquare(data: np.ndarray,
 def Optimization_Convex_ChiSquare(data: np.ndarray,
                                   threshold: float,
                                   ObjectiveFunction: PolynomialFunction,
-                                  MomentConstraintFunctions: List[PolynomialFunction],
+                                  MomentConstraintFunctions: typing.List[PolynomialFunction],
                                   mu: np.ndarray,
                                   Sigma: np.ndarray,
                                   bootstrappingSize: int,
@@ -248,6 +249,129 @@ def Optimization_Convex_Kolmogorov(data: np.ndarray,
                         g_Rs=ConstraintFunctions,
                         mu_lb_value=mu_lb_value, mu_ub_value=mu_ub_value)
 
+def OptimizationWithRectangularConstraint(D: int, inputData: np.ndarray,
+                                          thresholdPercentage: typing.Union[float, typing.List[float]],
+                                          alpha: float,
+                                          leftEndPointObjective: float, rightEndPointObjective: float,
+                                          bootstrappingSize: int, bootstrappingSeed: int):
+    #############################################################################################################
+    #############################################################################################################
+    # Rectangular constraint
+    # confidence level = 1-alpha
+    #############################################################################################################
+    #############################################################################################################
+
+    if type(thresholdPercentage) == float:
+        numMultiThreshold = 1
+        thresholds = [np.quantile(inputData, thresholdPercentage)]
+    else:
+        numMultiThreshold = len(thresholdPercentage)
+        thresholds = [np.quantile(inputData, eachThresholdPercentage)
+                      for eachThresholdPercentage in thresholdPercentage]
+    if rightEndPointObjective == np.inf:
+        h = PolynomialFunction(
+            [leftEndPointObjective, np.inf], [[1]])
+    else:
+        h = PolynomialFunction(
+            [leftEndPointObjective, rightEndPointObjective, np.inf], [[1], [0]])
+    if D == 0:
+        return np.min([Optimization_Plain_Kolmogorov(data=inputData,
+                                                     threshold=threshold,
+                                                     ObjectiveFunction=h,
+                                                     bootstrappingSize=bootstrappingSize,
+                                                     bootstrappingSeed=bootstrappingSeed,
+                                                     alpha=alpha,
+                                                     numMultiThreshold=numMultiThreshold) for threshold in thresholds])
+    if D == 1:
+        return np.min([Optimization_Monotone_Kolmogorov(data=inputData,
+                                                        threshold=threshold,
+                                                        ObjectiveFunction=h,
+                                                        bootstrappingSize=bootstrappingSize,
+                                                        bootstrappingSeed=bootstrappingSeed,
+                                                        alpha=alpha,
+                                                        numMultiThreshold=numMultiThreshold) for threshold in thresholds])
+    if D == 2:
+        return np.min([Optimization_Convex_Kolmogorov(data=inputData,
+                                                      threshold=threshold,
+                                                      ObjectiveFunction=h,
+                                                      bootstrappingSize=bootstrappingSize,
+                                                      bootstrappingSeed=bootstrappingSeed,
+                                                      alpha=alpha,
+                                                      numMultiThreshold=numMultiThreshold) for threshold in thresholds])
+
+
+def OptimizationWithEllipsodialConstraint(D: int, inputData: np.ndarray,
+                                          thresholdPercentage: typing.Union[float, typing.List[float]],
+                                          alpha: float,
+                                          leftEndPointObjective: float, rightEndPointObjective: float,
+                                          gEllipsoidalDimension: int,
+                                          bootstrappingSize: int, bootstrappingSeed: int):
+    #############################################################################################################
+    #############################################################################################################
+    # Ellipsodial constraint
+    # confidence level = 1-alpha
+    #############################################################################################################
+    #############################################################################################################
+    if rightEndPointObjective == np.inf:
+        h = PolynomialFunction(
+            [leftEndPointObjective, np.inf], [[1]])
+    else:
+        h = PolynomialFunction(
+            [leftEndPointObjective, rightEndPointObjective, np.inf], [[1], [0]])    
+
+    if type(thresholdPercentage) == float:
+        numMultiThreshold = 1
+        thresholds = [np.quantile(inputData, thresholdPercentage)]
+        g_EsList = [[PolynomialFunction([thresholds[0], np.inf], [[0] * i + [1]])
+                     for i in range(gEllipsoidalDimension)]]
+        muList = [np.array([np.sum(inputData**power*(inputData > thresholds[0])) /
+                            inputData.size for power in range(gEllipsoidalDimension)])]
+        SigmaList = [np.cov(np.vstack(
+            [(inputData > thresholds[0])*1.0*inputData**power for power in range(gEllipsoidalDimension)]))]
+    else:
+        numMultiThreshold = len(thresholdPercentage)
+        thresholds = [np.quantile(inputData, eachThresholdPercentage)
+                      for eachThresholdPercentage in thresholdPercentage]
+        g_EsList = [[PolynomialFunction([threshold, np.inf], [[0] * i + [1]])
+                     for i in range(gEllipsoidalDimension)] for threshold in thresholds]
+        muList = [np.array([np.sum(inputData**power*(inputData > threshold)) /
+                            inputData.size for power in range(gEllipsoidalDimension)]) for threshold in thresholds]
+        SigmaList = [np.cov(np.vstack(
+            [(inputData > threshold)*1.0*inputData**power for power in range(gEllipsoidalDimension)])) for threshold in thresholds]
+
+    if D == 0:
+        return np.min([Optimization_Plain_ChiSquare(data=inputData,
+                                                    threshold=threshold,
+                                                    ObjectiveFunction=h,
+                                                    MomentConstraintFunctions=g_Es,
+                                                    mu=mu,
+                                                    Sigma=Sigma,
+                                                    bootstrappingSize=bootstrappingSize,
+                                                    bootstrappingSeed=bootstrappingSeed,
+                                                    alpha=alpha,
+                                                    numMultiThreshold=numMultiThreshold) for threshold, g_Es, mu, Sigma in zip(thresholds, g_EsList, muList, SigmaList)])
+    if D == 1:
+        return np.min([Optimization_Monetone_ChiSquare(data=inputData,
+                                                       threshold=threshold,
+                                                       ObjectiveFunction=h,
+                                                       MomentConstraintFunctions=g_Es,
+                                                       mu=mu,
+                                                       Sigma=Sigma,
+                                                       bootstrappingSize=bootstrappingSize,
+                                                       bootstrappingSeed=bootstrappingSeed,
+                                                       alpha=alpha,
+                                                       numMultiThreshold=numMultiThreshold) for threshold, g_Es, mu, Sigma in zip(thresholds, g_EsList, muList, SigmaList)])
+    if D == 2:
+        return np.min([Optimization_Convex_ChiSquare(data=inputData,
+                                                     threshold=threshold,
+                                                     ObjectiveFunction=h,
+                                                     MomentConstraintFunctions=g_Es,
+                                                     mu=mu,
+                                                     Sigma=Sigma,
+                                                     bootstrappingSize=bootstrappingSize,
+                                                     bootstrappingSeed=bootstrappingSeed,
+                                                     alpha=alpha,
+                                                     numMultiThreshold=numMultiThreshold) for threshold, g_Es, mu, Sigma in zip(thresholds, g_EsList, muList, SigmaList)])
 
 if __name__ == '__main__':
     pass

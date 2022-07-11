@@ -2,11 +2,14 @@
 
 
 ```angular2html
-## To run in parallel tail probability estimation problem:
-python3 tableOne.py
+## To run in parallel tail probability estimation problem with single threshold:
+python3 tailProbabilityEstimationSingleThreshold.py
+
+## To run in parallel tail probability estimation problem with multiple thresholds:
+python3 tailProbabilityEstimationMultipleThresholds.py
 
 ## To run single tail probabiltiy estimation:
-python3 tailProbabilityPrediction.py
+python3 tailProbabilityEstimationUnit.py
 ```
 
 ## R Installation 

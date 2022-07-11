@@ -1,4 +1,4 @@
-from optimization_engine import optimization, PolynomialFunction
+from optimizationEngine import optimization, PolynomialFunction
 import numpy as np
 
 

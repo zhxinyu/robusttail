@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import os
 import itertools
-FILE_DIR = "testResult"
+FILE_DIR = "testResultSmall"
 metaDataDict = {"dataSize": 500,
                 "percentageLHS": 0.99,
                 "percentageRHS": 0.995,

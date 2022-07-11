@@ -31,7 +31,8 @@ if __name__ == '__main__':
        os.mkdir(FILE_DIR) 
     nExperimentReptition = 10
     randomSeed = 20220222
-    trueValue = 0.005
+    # trueValue = dpu.endPointGeneration(
+    #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
     dataDistributions = ['gamma', 'lognorm']
     thresholdPercentages = np.linspace(0.6, 0.85, 11).tolist()
     # served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
@@ -65,8 +66,7 @@ if __name__ == '__main__':
                                     )
                     print(df.mean(axis=0).values)
                     df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                            header=["(0,KS)", "(1,KS)", "(2,KS)",
-                                    "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                            header=["(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
                             index=True,
                             index_label="Experiment Repetition Index")
                     del df

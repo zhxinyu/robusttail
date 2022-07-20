@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import os
 import itertools
+import sys
+import traceback
 FILE_DIR = "testResultSmall"
 metaDataDict = {"dataSize": 500,
                 "quantitleValue": 0.99,
@@ -33,7 +35,7 @@ if __name__ == '__main__':
     randomSeed = 20220222
     # trueValue = dpu.endPointGeneration(
     #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
-    dataDistributions = ['gamma', 'lognorm']
+    dataDistributions = ['gamma', 'lognorm', 'pareto']
     thresholdPercentages = [0.6, 0.65, 0.70, 0.75, 0.8]
     # served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
     quantitleValues = np.linspace(0.9, 0.99, 10).tolist()
@@ -53,6 +55,7 @@ if __name__ == '__main__':
         FILE_NAME += ["randomSeed="+str(randomSeed)]
         FILE_NAME += ["nExperimentReptition="+str(nExperimentReptition)]
         FILE_NAME = '_'.join(FILE_NAME)+".csv"
+        FILE_NAME = FILE_NAME.replace("00000000000001","").replace("0000000000001","")
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
@@ -68,11 +71,28 @@ if __name__ == '__main__':
                                       )
                     print(df.mean(axis=0).values)
                     df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                              header=["(0,KS)", "(1,KS)", "(2,KS)",
-                                      "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                              header=["(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
                               index=True,
                               index_label="Experiment Repetition Index")
                     del df
                 print("Success!")
-            except:
+            except BaseException as ex:
                 print("Fail on "+os.path.join(FILE_DIR, FILE_NAME))
+                os.remove(os.path.join(FILE_DIR, FILE_NAME))
+                
+                # Get current system exception
+                ex_type, ex_value, ex_traceback = sys.exc_info()
+
+                # Extract unformatter stack traces as tuples
+                trace_back = traceback.extract_tb(ex_traceback)
+
+                # Format stacktrace
+                stack_trace = list()
+
+                for trace in trace_back:
+                    stack_trace.append("File : %s , Line : %d, Func.Name : %s, Message : %s" % (
+                        trace[0], trace[1], trace[2], trace[3]))
+
+                print("Exception type : %s " % ex_type.__name__)
+                print("Exception message : %s" % ex_value)
+                print("Stack trace : %s" % stack_trace)

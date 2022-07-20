@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import os
 import itertools
+import sys
+import traceback
 FILE_DIR = "testResultSmall"
 metaDataDict = {"dataSize": 500,
                 "percentageLHS": 0.99,
@@ -34,7 +36,7 @@ if __name__ == '__main__':
     nExperimentReptition = 10
     trueValue = 0.005
     randomSeed = 20220222
-    dataDistributions = ['gamma', 'lognorm']
+    dataDistributions = ['gamma', 'lognorm', 'pareto']
     ## as the min of the multi-threshold list, e.g. multi-threshold list: [0.6, 0.61, 0.62, 0.63, 0.64]
     thresholdPercentages = [0.6, 0.65, 0.70, 0.75, 0.8]
     ## served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
@@ -56,6 +58,7 @@ if __name__ == '__main__':
         FILE_NAME += ["randomSeed="+str(randomSeed)]
         FILE_NAME += ["nExperimentReptition="+str(nExperimentReptition)]
         FILE_NAME = '_'.join(FILE_NAME)+".csv"
+        FILE_NAME = FILE_NAME.replace("00000000000001","").replace("0000000000001","")
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
@@ -77,5 +80,23 @@ if __name__ == '__main__':
                               index_label="Experiment Repetition Index")
                     del df
                 print("Success!")
-            except:
+            except BaseException as ex:
                 print("Fail on "+os.path.join(FILE_DIR, FILE_NAME))
+                os.remove(os.path.join(FILE_DIR, FILE_NAME))
+
+                # Get current system exception
+                ex_type, ex_value, ex_traceback = sys.exc_info()
+
+                # Extract unformatter stack traces as tuples
+                trace_back = traceback.extract_tb(ex_traceback)
+
+                # Format stacktrace
+                stack_trace = list()
+
+                for trace in trace_back:
+                    stack_trace.append("File : %s , Line : %d, Func.Name : %s, Message : %s" % (
+                        trace[0], trace[1], trace[2], trace[3]))
+
+                print("Exception type : %s " % ex_type.__name__)
+                print("Exception message : %s" % ex_value)
+                print("Stack trace : %s" % stack_trace)

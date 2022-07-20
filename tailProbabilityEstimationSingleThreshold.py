@@ -29,7 +29,7 @@ def parallelRun(poolParam):
 if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
-       os.mkdir(FILE_DIR) 
+       os.mkdir(FILE_DIR)
     nExperimentReptition = 10
     randomSeed = 20220222
     trueValue = 0.005
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         assert "random_state" not in metaDataDict
         poolParamList = [(dataDistribution, metaDataDict, random_state+randomSeed)
                          for random_state in range(nExperimentReptition)]
-        FILE_NAME  = ["tailProbabilityEstimation"]
+        FILE_NAME = ["tailProbabilityEstimation"]
         FILE_NAME += ["dataDistribution="+dataDistribution]
         FILE_NAME += [key+"="+str(metaDataDict[key])
                       for key in metaDataDict]
@@ -56,21 +56,22 @@ if __name__ == '__main__':
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
-            df = pd.read_csv(os.path.join(FILE_DIR, FILE_NAME), index_col="Experiment Repetition Index")
+            df = pd.read_csv(os.path.join(FILE_DIR, FILE_NAME),
+                             index_col="Experiment Repetition Index")
             print(df.mean(axis=0).values)
         else:
             print("Writing: " +
-                os.path.join(FILE_DIR, FILE_NAME))
+                  os.path.join(FILE_DIR, FILE_NAME))
             try:
                 with Pool() as p:
                     df = pd.DataFrame(np.asarray(p.map(parallelRun, poolParamList))
-                                    )
+                                      )
                     print(df.mean(axis=0).values)
                     df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                            header=["(0,KS)", "(1,KS)", "(2,KS)",
-                                    "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
-                            index=True,
-                            index_label="Experiment Repetition Index")
+                              header=["(0,KS)", "(1,KS)", "(2,KS)",
+                                      "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                              index=True,
+                              index_label="Experiment Repetition Index")
                     del df
                 print("Success!")
             except:

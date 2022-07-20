@@ -343,7 +343,7 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
         mf.Expr.add(kappa, ellipsoid_obj_expr), rectangle_obj_expr))
     ## infinite constraint
     infinite_constraint(M, H, G_Es, G_Rs)
-    
+
     ## solve!
     M.solve()
     ## solution

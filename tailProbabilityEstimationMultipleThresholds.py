@@ -29,13 +29,13 @@ def parallelRun(poolParam):
 if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
-       os.mkdir(FILE_DIR)     
+       os.mkdir(FILE_DIR)
 
     nExperimentReptition = 10
     trueValue = 0.005
     randomSeed = 20220222
     dataDistributions = ['gamma', 'lognorm']
-    ## as the min of the multi-threshold list, e.g. multi-threshold list: [0.6, 0.61, 0.62, 0.63, 0.64]    
+    ## as the min of the multi-threshold list, e.g. multi-threshold list: [0.6, 0.61, 0.62, 0.63, 0.64]
     thresholdPercentages = [0.6, 0.65, 0.70, 0.75, 0.8]
     ## served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
     percentageLHSs = np.linspace(0.9, 0.99, 10).tolist()
@@ -59,23 +59,23 @@ if __name__ == '__main__':
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
-            df = pd.read_csv(os.path.join(FILE_DIR, FILE_NAME), index_col="Experiment Repetition Index")
+            df = pd.read_csv(os.path.join(FILE_DIR, FILE_NAME),
+                             index_col="Experiment Repetition Index")
             print(df.mean(axis=0).values)
         else:
             print("Writing: " +
-                os.path.join(FILE_DIR, FILE_NAME))
+                  os.path.join(FILE_DIR, FILE_NAME))
             try:
                 with Pool() as p:
                     df = pd.DataFrame(np.asarray(p.map(parallelRun, poolParamList))
-                                    )
+                                      )
                     print(df.mean(axis=0).values)
                     df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                            header=["(0,KS)", "(1,KS)", "(2,KS)",
-                                    "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
-                            index=True,
-                            index_label="Experiment Repetition Index")
+                              header=["(0,KS)", "(1,KS)", "(2,KS)",
+                                      "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                              index=True,
+                              index_label="Experiment Repetition Index")
                     del df
-                print("Success!")                    
+                print("Success!")
             except:
                 print("Fail on "+os.path.join(FILE_DIR, FILE_NAME))
-

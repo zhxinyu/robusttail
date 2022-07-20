@@ -8,12 +8,16 @@ import numpy as np
 def quantileEstimationBinarySearchUnit(D: int, inputData: np.ndarray,
                                        thresholdPercentage: typing.Union[float, typing.List[float]],
                                        quantitleValue: float, gEllipsoidalDimension: int, alpha: float, random_state: int) -> float:
-    if type(thresholdPercentage) == float:
+    if isinstance(thresholdPercentage, float):
         startQuantilePoint = np.quantile(inputData, thresholdPercentage)
     else:
-        assert type(thresholdPercentage) == typing.List[float]
-        startQuantilePoint = np.quantile(inputData, np.max(thresholdPercentage))
-                                     
+        assert isinstance(thresholdPercentage, list) and len(
+            thresholdPercentage) >= 2
+        assert all(isinstance(
+            eachThresholdPercentage, float) for eachThresholdPercentage in thresholdPercentage)
+        startQuantilePoint = np.quantile(
+            inputData, np.max(thresholdPercentage))
+
     targetValue = 1 - quantitleValue
     currentValue = np.inf
     lhsPoint = startQuantilePoint
@@ -22,11 +26,11 @@ def quantileEstimationBinarySearchUnit(D: int, inputData: np.ndarray,
     ## we assume that max P(X>=startQuantilePoint) > targetValue.
     while np.abs(currentValue-targetValue) > 1e-5:
         currentValue = ou.OptimizationWithEllipsodialConstraint(D,
-                            inputData,
-                            thresholdPercentage,
-                            alpha,
-                            midPoint, np.inf, gEllipsoidalDimension,
-                            inputData.size, 7*random_state+1)
+                                                                inputData,
+                                                                thresholdPercentage,
+                                                                alpha,
+                                                                midPoint, np.inf, gEllipsoidalDimension,
+                                                                inputData.size, 7*random_state+1)
         outputMidPoint = midPoint
         if currentValue > targetValue:
             lhsPoint = midPoint
@@ -37,6 +41,7 @@ def quantileEstimationBinarySearchUnit(D: int, inputData: np.ndarray,
         else:
             midPoint = lhsPoint + (rhsPoint-lhsPoint)/2
     return outputMidPoint
+
 
 def quantileEstimationnPerRep(dataModule,
                               quantitleValue: float,
@@ -61,6 +66,7 @@ def quantileEstimationnPerRep(dataModule,
                                                          quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1)
     return outputPerRep
 
+
 if __name__ == '__main__':
     dataSize = 500
     quantitleValue = 0.99
@@ -70,7 +76,7 @@ if __name__ == '__main__':
     alpha = 0.05
     random_state = 20220222
     gEllipsoidalDimension = 3
-    print("A small example on quantile estimation--single threshold.")    
+    print("A small example on quantile estimation--single threshold.")
     print(quantileEstimationnPerRep(
         gamma, quantitleValue, dataSize, thresholdPercentage, gEllipsoidalDimension, alpha, random_state))
     # print(trueValue)

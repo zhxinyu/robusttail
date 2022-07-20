@@ -353,8 +353,3 @@ if __name__ == '__main__':
     test_0_chi2_ex1()
     test_1_chi2_ex1()
     test_2_chi2_ex1()
-    # .integration_riser(2)
-    # G_Es   = [PolynomialFunction([threshold_level],[[0]*i+[1]]) for i in range(d_E)]
-    # xi_obs = np.random.rand(d_R-1)*3+threshold_level
-    # xi_obs = [threshold_level]+np.sort(xi_obs).tolist()
-    # G_Rs   = [PolynomialFunction([xi_obs[i],xi_obs[i+1]],[[1],[0]]) for i in range(d_R-1)]+[PolynomialFunction([xi_obs[-1]],[[1]])]

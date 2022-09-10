@@ -13,6 +13,16 @@ python3 tailProbabilityEstimationMultipleThresholds.py
 
 ## To run single tail probabiltiy estimation:
 python3 tailProbabilityEstimationUnit.py
+
+## To run on quantile estimation--single threshold.
+python3 quantileEstimationSingleThreshold.py
+
+## To run on quantile estimation--multiple thresholds.
+python3 quantileEstimationMultipleThresholds.py
+
+## To run single quantile estimation:
+python3 quantileEstimationUnit.py
+
 ```
 
 ## R Installation 

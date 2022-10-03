@@ -7,7 +7,16 @@ from scipy.special import comb
 from scipy.linalg import sqrtm
 import bisect
 import copy
-
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 class PolynomialFunction:
     def __init__(self, input_endpoints: List[float], coefficients: List[List[float]]):
@@ -347,7 +356,13 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
     ## solve!
     M.solve()
     ## solution
-    return M.primalObjValue()
+    try:
+        return M.primalObjValue()
+    except:
+        print(bcolors.WARNING + "Problem status is {:}".format(M.getProblemStatus())+ bcolors.ENDC)
+        print(bcolors.WARNING + "Set the acceptedSolutionStatus as AccSolutionStatus.Anything to retrieve suboptimal solution."+ bcolors.ENDC)
+        M.acceptedSolutionStatus(mf.AccSolutionStatus.Anything)
+        return (M.primalObjValue()+M.dualObjValue())/2
 
 
 def test_PolynomialFunction_integration_riser():

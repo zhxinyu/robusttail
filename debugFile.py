@@ -27,11 +27,10 @@ def tpeTest():
     print(tpe.tailProbabilityEstimationPerRep(
         lognorm, percentageLHS, percentageRHS, dataSize, thresholdPercentage, gEllipsoidalDimension, alpha, random_state+randomStateIncrement))
 
-def qeTest(metaDataDict):
-    # testResultSmall/quantileEstimation_dataDistribution=pareto_dataSize=500_quantitleValue=0.9_thresholdPercentage=0.775_alpha=0.05_gEllipsoidalDimension=3_randomSeed=20220222_nExperimentReptition=10.csv
-    # metaDataDict["dataSize"] = 500
-    metaDataDict["quantitleValue"] = 0.9
-    metaDataDict["thresholdPercentage"] = 0.775
+def qeTest(metaDataDict):    
+    metaDataDict["dataSize"] = 500
+    metaDataDict["quantitleValue"] = 0.99
+    metaDataDict["thresholdPercentage"] = 0.85
     nExperimentReptition = 10
     randomSeed = 20220222
     dataDistribution = 'pareto'
@@ -39,11 +38,8 @@ def qeTest(metaDataDict):
                      for random_state in range(nExperimentReptition)]
 
     for i in range(len(poolParamList)):
-        if i != 9:
-            continue
         dataDistribution, metaDataDict, random_state = poolParamList[i]
         metaDataDict["random_state"] = random_state
-        print(i)
         res = qe.quantileEstimationnPerRep(
             stringToDataModule[dataDistribution], **metaDataDict)
         print(res)

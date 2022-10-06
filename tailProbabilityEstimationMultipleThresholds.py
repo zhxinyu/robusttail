@@ -7,7 +7,7 @@ import os
 import itertools
 import sys
 import traceback
-FILE_DIR = "testResultSmall"
+FILE_DIR = "testResult"
 metaDataDict = {"dataSize": 500,
                 "percentageLHS": 0.99,
                 "percentageRHS": 0.995,
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     if not os.path.isdir(FILE_DIR):
        os.mkdir(FILE_DIR)
 
-    nExperimentReptition = 10
+    nExperimentReptition = 200
     trueValue = 0.005
     randomSeed = 20220222
     dataDistributions = ['gamma', 'lognorm', 'pareto']

@@ -7,7 +7,7 @@ import os
 import itertools
 import sys
 import traceback
-FILE_DIR = "testResultSmall"
+FILE_DIR = "testResult"
 metaDataDict = {"dataSize": 500,
                 "quantitleValue": 0.99,
                 "thresholdPercentage": 0.7,
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
        os.mkdir(FILE_DIR)
-    nExperimentReptition = 10
+    nExperimentReptition = 200
     randomSeed = 20220222
     # trueValue = dpu.endPointGeneration(
     #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])

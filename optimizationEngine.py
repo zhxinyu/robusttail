@@ -7,6 +7,8 @@ from scipy.special import comb
 from scipy.linalg import sqrtm
 import bisect
 import copy
+
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -17,6 +19,7 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
 
 class PolynomialFunction:
     def __init__(self, input_endpoints: List[float], coefficients: List[List[float]]):
@@ -359,9 +362,13 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
     try:
         return M.primalObjValue()
     except:
-        print(bcolors.WARNING + "Problem status is {:}".format(M.getProblemStatus())+ bcolors.ENDC)
-        print(bcolors.WARNING + "Set the acceptedSolutionStatus as AccSolutionStatus.Anything to retrieve suboptimal solution."+ bcolors.ENDC)
+        print(bcolors.WARNING +
+              "Problem status is {:}".format(M.getProblemStatus()) + bcolors.ENDC)
         M.acceptedSolutionStatus(mf.AccSolutionStatus.Anything)
+        print(bcolors.WARNING + "Set the acceptedSolutionStatus as AccSolutionStatus.Anything to retrieve suboptimal solution." + bcolors.ENDC)
+        print(bcolors.WARNING + "Primal and dual suboptimal values are {:.8f}/{:.8f}. Relative gap: {:.8f}".format(M.primalObjValue(), M.dualObjValue(),
+                                                                                                                   abs(M.primalObjValue()-M.dualObjValue())/M.primalObjValue()) + bcolors.ENDC)
+
         return (M.primalObjValue()+M.dualObjValue())/2
 
 

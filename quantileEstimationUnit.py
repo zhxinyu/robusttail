@@ -24,7 +24,7 @@ def quantileEstimationBinarySearchUnit(D: int, inputData: np.ndarray,
     rhsPoint = np.inf
     midPoint = 2*lhsPoint
     ## we assume that max P(X>=startQuantilePoint) > targetValue.
-    while np.abs(currentValue-targetValue) > 1e-5:
+    while (np.abs(currentValue-targetValue)/targetValue > 1e-6 and (rhsPoint-lhsPoint)/lhsPoint>1e-6):
         currentValue = ou.OptimizationWithEllipsodialConstraint(D,
                                                                 inputData,
                                                                 thresholdPercentage,

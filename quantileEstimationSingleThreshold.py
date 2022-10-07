@@ -37,7 +37,7 @@ if __name__ == '__main__':
     #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
     dataDistributions = ['gamma', 'lognorm', 'pareto']
     thresholdPercentages = np.linspace(0.6, 0.85, 11).tolist()
-    # served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
+    # served as the target percentage the problem aims to estimate the quantile point from.
     quantitleValues = np.linspace(0.9, 0.99, 10).tolist()
     dataSizes = [500, 800]
     for dataDistribution, dataSize, quantitleValue, thresholdPercentage in itertools.product(*[dataDistributions, dataSizes, quantitleValues, thresholdPercentages]):

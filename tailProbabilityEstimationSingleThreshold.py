@@ -33,11 +33,11 @@ if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
        os.mkdir(FILE_DIR)
-    nExperimentReptition = 200
+    nExperimentReptition = 10
     randomSeed = 20220222
     trueValue = 0.005
     dataDistributions = ['gamma', 'lognorm', 'pareto']
-    thresholdPercentages = np.linspace(0.6, 0.85, 11).tolist()
+    thresholdPercentages = np.linspace(0.6, 0.84, 25).tolist()
     # served as the lhsEndpoint in the objective function: 1_{lhs<=x<=rhs}.
     percentageLHSs = np.linspace(0.9, 0.99, 10).tolist()
     dataSizes = [500, 800]

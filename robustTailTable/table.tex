@@ -1,0 +1,734 @@
+\documentclass{article} % \documentclass{} is the first command in any LaTeX code.  It is used to define what kind of document you are creating such as an article or a book, and begins the document preamble
+
+\usepackage{amsmath} % \usepackage is a command that allows you to add functionality to your LaTeX code
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\title{Robust Tail Table} % Sets article title
+\author{Xinyu Zhang} % Sets authors name
+\date{\today} % Sets date for date compiled
+
+% The preamble ends with the command \begin{document}
+\begin{document} % All begin commands must be paired with an end command somewhere
+    \maketitle % creates title using information in preamble (title, author, date)
+    
+    \begin{table}[ht]
+    \centering\scalebox{0.7}{
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $16.08/8.04\times 10^{-2}$ & $ 1$\\
+        $(1,\chi^2)$ & $5.46/2.73\times 10^{-2}$ & $ 1$\\
+        $(2,\chi^2)$ & $2.99/1.50\times 10^{-2}$ & $ 1$\\
+        $(0,\text{KS})$ & $14.23/7.11\times 10^{-2}$ & $ 1$\\
+        $(1,\text{KS})$ & $6.64/3.32\times 10^{-2}$ & $ 1$\\
+        $(2,\text{KS})$ & $3.95/1.98\times 10^{-2}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb11_tpe_gamma}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $14.19/7.10\times 10^{-2}$ & $ 1$\\
+        $(1,\chi^2)$ & $5.00/2.50\times 10^{-2}$ & $ 1$\\
+        $(2,\chi^2)$ & $2.76/1.38\times 10^{-2}$ & $ 1$\\
+        $(0,\text{KS})$ & $11.65/5.83\times 10^{-2}$ & $ 1$\\
+        $(1,\text{KS})$ & $5.90/2.95\times 10^{-2}$ & $ 1$\\
+        $(2,\text{KS})$ & $3.54/1.77\times 10^{-2}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb12_tpe_gamma}
+    \end{subtable}
+    }\caption{Tail probablity estimation with Gamma data source. True value is 0.005.}
+    \label{stb1_tpe_gamma}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.7}{
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $15.75/7.88\times 10^{-2}$ & $ 1$\\
+        $(1,\chi^2)$ & $6.35/3.18\times 10^{-2}$ & $ 1$\\
+        $(2,\chi^2)$ & $3.93/1.96\times 10^{-2}$ & $ 1$\\
+        $(0,\text{KS})$ & $14.11/7.05\times 10^{-2}$ & $ 1$\\
+        $(1,\text{KS})$ & $7.94/3.97\times 10^{-2}$ & $ 1$\\
+        $(2,\text{KS})$ & $5.06/2.53\times 10^{-2}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb11_tpe_lognormal}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $16.98/8.49\times 10^{-2}$ & $ 1$\\
+        $(1,\chi^2)$ & $6.58/3.29\times 10^{-2}$ & $ 1$\\
+        $(2,\chi^2)$ & $3.99/2.00\times 10^{-2}$ & $ 1$\\
+        $(0,\text{KS})$ & $11.55/5.78\times 10^{-2}$ & $ 1$\\
+        $(1,\text{KS})$ & $6.98/3.49\times 10^{-2}$ & $ 1$\\
+        $(2,\text{KS})$ & $4.46/2.23\times 10^{-2}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb12_tpe_lognormal}
+    \end{subtable}
+    }\caption{Tail probablity estimation with Lognormal data source. True value is 0.005.}
+    \label{tb1_tpe_lognormal}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.7}{
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $14.78/7.39\times 10^{-2}$ & $ 1$\\
+        $(1,\chi^2)$ & $6.39/3.20\times 10^{-2}$ & $ 1$\\
+        $(2,\chi^2)$ & $4.29/2.15\times 10^{-2}$ & $ 1$\\
+        $(0,\text{KS})$ & $13.63/6.81\times 10^{-2}$ & $ 1$\\
+        $(1,\text{KS})$ & $8.85/4.43\times 10^{-2}$ & $ 1$\\
+        $(2,\text{KS})$ & $5.95/2.98\times 10^{-2}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb11_tpe_pareto}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $14.92/7.46\times 10^{-2}$ & $ 1$\\
+        $(1,\chi^2)$ & $6.44/3.22\times 10^{-2}$ & $ 1$\\
+        $(2,\chi^2)$ & $4.23/2.11\times 10^{-2}$ & $ 1$\\
+        $(0,\text{KS})$ & $11.15/5.58\times 10^{-2}$ & $ 1$\\
+        $(1,\text{KS})$ & $7.59/3.79\times 10^{-2}$ & $ 1$\\
+        $(2,\text{KS})$ & $5.14/2.57\times 10^{-2}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb12_tpe_pareto}
+    \end{subtable}
+    }\caption{Tail probablity estimation with Pareto data source. True value is 0.005.}
+    \label{tb1_tpe_pareto}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.7}{
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $1.83/2.07\times 10^{1}$ & $ 1$\\
+        $(1,\chi^2)$ & $1.35/1.53\times 10^{1}$ & $ 1$\\
+        $(2,\chi^2)$ & $1.27/1.44\times 10^{1}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb11_qe_gamma}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $1.75/1.98\times 10^{1}$ & $ 1$\\
+        $(1,\chi^2)$ & $1.30/1.47\times 10^{1}$ & $ 1$\\
+        $(2,\chi^2)$ & $1.22/1.38\times 10^{1}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb12_qe_gamma}
+    \end{subtable}
+    }\caption{Quantitle estimation with Gamma data source. True value is 11.3147.}
+    \label{stb1_qe_gamma}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.7}{
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $2.64/2.71\times 10^{1}$ & $ 1$\\
+        $(1,\chi^2)$ & $1.87/1.92\times 10^{1}$ & $ 1$\\
+        $(2,\chi^2)$ & $1.75/1.80\times 10^{1}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb11_qe_lognormal}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.7\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{p{2.8cm}}{Constraint setting} &
+        \multicolumn{1}{p{3.9cm}}{Relative ratio/Estimated UpperBound}  &
+        \multicolumn{1}{p{2cm}}{Converage probability}  \\\hline
+        $(0,\chi^2)$ & $2.92/2.99\times 10^{1}$ & $ 1$\\
+        $(1,\chi^2)$ & $2.06/2.11\times 10^{1}$ & $ 1$\\
+        $(2,\chi^2)$ & $1.93/1.98\times 10^{1}$ & $ 1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb12_qe_lognormal}
+    \end{subtable}
+    }\caption{Quantitle estimation with Lognormal data source. True value is 10.2405.}
+    \label{stb1_qe_lognormal}
+    \end{table}
+
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.60$ & $1.54\times 10^{-2}/3.075/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.62$ & $1.53\times 10^{-2}/3.058/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.65$ & $1.53\times 10^{-2}/3.051/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.68$ & $1.51\times 10^{-2}/3.021/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.70$ & $1.50\times 10^{-2}/2.994/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $[0.6, 0.62, 0.65, 0.68, 0.7]$ & $1.50\times 10^{-2}/2.994/  1$ & $1.98\times 10^{-2}/3.952/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_gamma_0.6}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.60$ & $1.41\times 10^{-2}/2.820/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.62$ & $1.41\times 10^{-2}/2.812/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.65$ & $1.40\times 10^{-2}/2.801/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.68$ & $1.39\times 10^{-2}/2.785/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.70$ & $1.38\times 10^{-2}/2.764/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $[0.6, 0.62, 0.65, 0.68, 0.7]$ & $1.38\times 10^{-2}/2.764/  1$ & $1.77\times 10^{-2}/3.536/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_gamma_0.6}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Gamma data source. Case: [0.6, 0.61, 0.62, 0.63, 0.64]. True value is 0.005.}
+    \label{stb3_tpe_gamma_0.6}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.60$ & $2.02\times 10^{-2}/4.040/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.62$ & $2.00\times 10^{-2}/3.999/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.65$ & $1.99\times 10^{-2}/3.980/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.68$ & $1.97\times 10^{-2}/3.949/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.70$ & $1.96\times 10^{-2}/3.927/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $[0.6, 0.62, 0.65, 0.68, 0.7]$ & $1.96\times 10^{-2}/3.927/  1$ & $2.53\times 10^{-2}/5.058/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_lognormal_0.6}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.60$ & $2.07\times 10^{-2}/4.145/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.62$ & $2.04\times 10^{-2}/4.089/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.65$ & $2.03\times 10^{-2}/4.060/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.68$ & $2.01\times 10^{-2}/4.029/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.70$ & $2.00\times 10^{-2}/3.991/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $[0.6, 0.62, 0.65, 0.68, 0.7]$ & $2.00\times 10^{-2}/3.991/  1$ & $2.23\times 10^{-2}/4.461/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_lognormal_0.6}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Lognormal data source. Case: [0.6, 0.61, 0.62, 0.63, 0.64]. True value is 0.005.}
+    \label{stb3_tpe_lognormal_0.6}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.60$ & $2.22\times 10^{-2}/4.431/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.62$ & $2.20\times 10^{-2}/4.396/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.65$ & $2.18\times 10^{-2}/4.354/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.68$ & $2.15\times 10^{-2}/4.309/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.70$ & $2.15\times 10^{-2}/4.293/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $[0.6, 0.62, 0.65, 0.68, 0.7]$ & $2.15\times 10^{-2}/4.293/  1$ & $2.98\times 10^{-2}/5.951/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_pareto_0.6}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.60$ & $2.21\times 10^{-2}/4.413/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.62$ & $2.18\times 10^{-2}/4.355/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.65$ & $2.16\times 10^{-2}/4.320/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.68$ & $2.14\times 10^{-2}/4.279/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.70$ & $2.11\times 10^{-2}/4.230/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $[0.6, 0.62, 0.65, 0.68, 0.7]$ & $2.11\times 10^{-2}/4.230/  1$ & $2.57\times 10^{-2}/5.143/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_pareto_0.6}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Pareto data source. Case: [0.6, 0.61, 0.62, 0.63, 0.64]. True value is 0.005.}
+    \label{stb3_tpe_pareto_0.6}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.65$ & $1.53\times 10^{-2}/3.051/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.68$ & $1.51\times 10^{-2}/3.021/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.70$ & $1.50\times 10^{-2}/2.994/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.73$ & $1.49\times 10^{-2}/2.983/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.75$ & $1.49\times 10^{-2}/2.970/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $[0.65, 0.68, 0.7, 0.73, 0.75]$ & $1.49\times 10^{-2}/2.970/  1$ & $1.98\times 10^{-2}/3.952/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_gamma_0.65}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.65$ & $1.40\times 10^{-2}/2.801/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.68$ & $1.39\times 10^{-2}/2.785/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.70$ & $1.38\times 10^{-2}/2.764/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.73$ & $1.37\times 10^{-2}/2.739/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.75$ & $1.36\times 10^{-2}/2.727/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $[0.65, 0.68, 0.7, 0.73, 0.75]$ & $1.36\times 10^{-2}/2.727/  1$ & $1.77\times 10^{-2}/3.536/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_gamma_0.65}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Gamma data source. Case: [0.65, 0.66, 0.67, 0.68, 0.69]. True value is 0.005.}
+    \label{stb3_tpe_gamma_0.65}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.65$ & $1.99\times 10^{-2}/3.980/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.68$ & $1.97\times 10^{-2}/3.949/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.70$ & $1.96\times 10^{-2}/3.927/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.73$ & $1.95\times 10^{-2}/3.906/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.75$ & $1.95\times 10^{-2}/3.896/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $[0.65, 0.68, 0.7, 0.73, 0.75]$ & $1.95\times 10^{-2}/3.896/  1$ & $2.53\times 10^{-2}/5.058/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_lognormal_0.65}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.65$ & $2.03\times 10^{-2}/4.060/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.68$ & $2.01\times 10^{-2}/4.029/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.70$ & $2.00\times 10^{-2}/3.991/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.73$ & $1.97\times 10^{-2}/3.943/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.75$ & $1.95\times 10^{-2}/3.908/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $[0.65, 0.68, 0.7, 0.73, 0.75]$ & $1.95\times 10^{-2}/3.908/  1$ & $2.23\times 10^{-2}/4.461/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_lognormal_0.65}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Lognormal data source. Case: [0.65, 0.66, 0.67, 0.68, 0.69]. True value is 0.005.}
+    \label{stb3_tpe_lognormal_0.65}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.65$ & $2.18\times 10^{-2}/4.354/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.68$ & $2.15\times 10^{-2}/4.309/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.70$ & $2.15\times 10^{-2}/4.293/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.73$ & $2.13\times 10^{-2}/4.252/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.75$ & $2.11\times 10^{-2}/4.214/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $[0.65, 0.68, 0.7, 0.73, 0.75]$ & $2.11\times 10^{-2}/4.214/  1$ & $2.98\times 10^{-2}/5.951/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_pareto_0.65}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.65$ & $2.16\times 10^{-2}/4.320/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.68$ & $2.14\times 10^{-2}/4.279/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.70$ & $2.11\times 10^{-2}/4.230/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.73$ & $2.09\times 10^{-2}/4.171/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.75$ & $2.06\times 10^{-2}/4.127/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $[0.65, 0.68, 0.7, 0.73, 0.75]$ & $2.06\times 10^{-2}/4.127/  1$ & $2.57\times 10^{-2}/5.143/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_pareto_0.65}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Pareto data source. Case: [0.65, 0.66, 0.67, 0.68, 0.69]. True value is 0.005.}
+    \label{stb3_tpe_pareto_0.65}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.70$ & $1.50\times 10^{-2}/2.994/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.72$ & $1.49\times 10^{-2}/2.983/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.75$ & $1.49\times 10^{-2}/2.970/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.77$ & $1.48\times 10^{-2}/2.953/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.80$ & $1.47\times 10^{-2}/2.934/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $[0.7, 0.72, 0.75, 0.77, 0.8]$ & $1.47\times 10^{-2}/2.934/  1$ & $1.98\times 10^{-2}/3.952/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_gamma_0.7}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.70$ & $1.38\times 10^{-2}/2.764/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.72$ & $1.37\times 10^{-2}/2.739/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.75$ & $1.36\times 10^{-2}/2.727/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.77$ & $1.36\times 10^{-2}/2.710/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.80$ & $1.35\times 10^{-2}/2.695/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $[0.7, 0.72, 0.75, 0.77, 0.8]$ & $1.35\times 10^{-2}/2.695/  1$ & $1.77\times 10^{-2}/3.536/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_gamma_0.7}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Gamma data source. Case: [0.7, 0.71, 0.72, 0.73, 0.74]. True value is 0.005.}
+    \label{stb3_tpe_gamma_0.7}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.70$ & $1.96\times 10^{-2}/3.927/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.72$ & $1.95\times 10^{-2}/3.906/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.75$ & $1.95\times 10^{-2}/3.896/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.77$ & $1.92\times 10^{-2}/3.839/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.80$ & $1.90\times 10^{-2}/3.790/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $[0.7, 0.72, 0.75, 0.77, 0.8]$ & $1.90\times 10^{-2}/3.790/  1$ & $2.53\times 10^{-2}/5.058/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_lognormal_0.7}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.70$ & $2.00\times 10^{-2}/3.991/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.72$ & $1.97\times 10^{-2}/3.943/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.75$ & $1.95\times 10^{-2}/3.908/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.77$ & $1.92\times 10^{-2}/3.850/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.80$ & $1.91\times 10^{-2}/3.826/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $[0.7, 0.72, 0.75, 0.77, 0.8]$ & $1.91\times 10^{-2}/3.826/  1$ & $2.23\times 10^{-2}/4.461/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_lognormal_0.7}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Lognormal data source. Case: [0.7, 0.71, 0.72, 0.73, 0.74]. True value is 0.005.}
+    \label{stb3_tpe_lognormal_0.7}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.70$ & $2.15\times 10^{-2}/4.293/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.72$ & $2.13\times 10^{-2}/4.252/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.75$ & $2.11\times 10^{-2}/4.214/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.77$ & $2.09\times 10^{-2}/4.176/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.80$ & $2.08\times 10^{-2}/4.153/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $[0.7, 0.72, 0.75, 0.77, 0.8]$ & $2.08\times 10^{-2}/4.153/  1$ & $2.98\times 10^{-2}/5.951/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_pareto_0.7}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.70$ & $2.11\times 10^{-2}/4.230/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.72$ & $2.09\times 10^{-2}/4.171/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.75$ & $2.06\times 10^{-2}/4.127/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.77$ & $2.04\times 10^{-2}/4.079/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.80$ & $2.02\times 10^{-2}/4.039/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $[0.7, 0.72, 0.75, 0.77, 0.8]$ & $2.02\times 10^{-2}/4.039/  1$ & $2.57\times 10^{-2}/5.143/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_pareto_0.7}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Pareto data source. Case: [0.7, 0.71, 0.72, 0.73, 0.74]. True value is 0.005.}
+    \label{stb3_tpe_pareto_0.7}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.75$ & $1.49\times 10^{-2}/2.970/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.78$ & $1.48\times 10^{-2}/2.953/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.80$ & $1.47\times 10^{-2}/2.934/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.82$ & $1.45\times 10^{-2}/2.895/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $0.85$ & $1.44\times 10^{-2}/2.890/ 1$ & $1.98\times 10^{-2}/3.952/ 1$\\
+        $[0.75, 0.78, 0.8, 0.82, 0.85]$ & $1.44\times 10^{-2}/2.890/  1$ & $1.98\times 10^{-2}/3.952/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_gamma_0.75}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.75$ & $1.36\times 10^{-2}/2.727/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.78$ & $1.36\times 10^{-2}/2.710/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.80$ & $1.35\times 10^{-2}/2.695/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.82$ & $1.34\times 10^{-2}/2.672/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $0.85$ & $1.33\times 10^{-2}/2.657/ 1$ & $1.77\times 10^{-2}/3.536/ 1$\\
+        $[0.75, 0.78, 0.8, 0.82, 0.85]$ & $1.33\times 10^{-2}/2.657/  1$ & $1.77\times 10^{-2}/3.536/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_gamma_0.75}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Gamma data source. Case: [0.75, 0.76, 0.77, 0.78, 0.79]. True value is 0.005.}
+    \label{stb3_tpe_gamma_0.75}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.75$ & $1.95\times 10^{-2}/3.896/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.78$ & $1.92\times 10^{-2}/3.839/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.80$ & $1.90\times 10^{-2}/3.790/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.82$ & $1.87\times 10^{-2}/3.732/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $0.85$ & $1.83\times 10^{-2}/3.663/ 1$ & $2.53\times 10^{-2}/5.058/ 1$\\
+        $[0.75, 0.78, 0.8, 0.82, 0.85]$ & $1.83\times 10^{-2}/3.663/  1$ & $2.53\times 10^{-2}/5.058/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_lognormal_0.75}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.75$ & $1.95\times 10^{-2}/3.908/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.78$ & $1.92\times 10^{-2}/3.850/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.80$ & $1.91\times 10^{-2}/3.826/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.82$ & $1.89\times 10^{-2}/3.779/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $0.85$ & $1.87\times 10^{-2}/3.749/ 1$ & $2.23\times 10^{-2}/4.461/ 1$\\
+        $[0.75, 0.78, 0.8, 0.82, 0.85]$ & $1.87\times 10^{-2}/3.749/  1$ & $2.23\times 10^{-2}/4.461/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_lognormal_0.75}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Lognormal data source. Case: [0.75, 0.76, 0.77, 0.78, 0.79]. True value is 0.005.}
+    \label{stb3_tpe_lognormal_0.75}
+    \end{table}
+
+    \begin{table}[ht]
+    \centering\scalebox{0.65}{
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.75$ & $2.11\times 10^{-2}/4.214/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.78$ & $2.09\times 10^{-2}/4.176/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.80$ & $2.08\times 10^{-2}/4.153/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.82$ & $2.05\times 10^{-2}/4.099/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $0.85$ & $2.02\times 10^{-2}/4.046/ 1$ & $2.98\times 10^{-2}/5.951/ 1$\\
+        $[0.75, 0.78, 0.8, 0.82, 0.85]$ & $2.02\times 10^{-2}/4.046/  1$ & $2.98\times 10^{-2}/5.951/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $500$. }
+    \label{stb31_tpe_pareto_0.75}
+    \end{subtable}
+    \quad\quad\quad\quad
+    \begin{subtable}{0.82\textwidth}\begin{tabular}{ccc}
+        \toprule
+        \hline
+        \multicolumn{1}{c}{Thresholds} &
+        \multicolumn{1}{c}{$(2,\chi^2)$}  &
+        \multicolumn{1}{c}{$(2,\textup{KS})$}  \\\hline
+        $0.75$ & $2.06\times 10^{-2}/4.127/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.78$ & $2.04\times 10^{-2}/4.079/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.80$ & $2.02\times 10^{-2}/4.039/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.82$ & $1.99\times 10^{-2}/3.979/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $0.85$ & $1.97\times 10^{-2}/3.937/ 1$ & $2.57\times 10^{-2}/5.143/ 1$\\
+        $[0.75, 0.78, 0.8, 0.82, 0.85]$ & $1.97\times 10^{-2}/3.937/  1$ & $2.57\times 10^{-2}/5.143/  1$\\
+        \hline
+    \bottomrule
+    \end{tabular}
+    \caption{Data sample size = $800$. }
+    \label{stb32_tpe_pareto_0.75}
+    \end{subtable}
+    }\caption{Tail probablity estimation under cutoff threshold(s) from Pareto data source. Case: [0.75, 0.76, 0.77, 0.78, 0.79]. True value is 0.005.}
+    \label{stb3_tpe_pareto_0.75}
+    \end{table}
+\end{document} % This is the end of the document

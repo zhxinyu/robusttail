@@ -33,7 +33,7 @@ if __name__ == '__main__':
     if not os.path.isdir(FILE_DIR):
        os.mkdir(FILE_DIR)
 
-    nExperimentReptition = 200
+    nExperimentReptition = 10
     trueValue = 0.005
     randomSeed = 20220222
     dataDistributions = ['gamma', 'lognorm', 'pareto']
@@ -58,7 +58,8 @@ if __name__ == '__main__':
         FILE_NAME += ["randomSeed="+str(randomSeed)]
         FILE_NAME += ["nExperimentReptition="+str(nExperimentReptition)]
         FILE_NAME = '_'.join(FILE_NAME)+".csv"
-        FILE_NAME = FILE_NAME.replace("00000000000001","").replace("0000000000001","")
+        FILE_NAME = FILE_NAME.replace(
+            "00000000000001", "").replace("0000000000001", "")
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))

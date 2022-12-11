@@ -31,7 +31,7 @@ if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
        os.mkdir(FILE_DIR)
-    nExperimentReptition = 200
+    nExperimentReptition = 10
     randomSeed = 20220222
     # trueValue = dpu.endPointGeneration(
     #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])

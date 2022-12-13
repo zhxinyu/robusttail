@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  13 OCT 2022 13:00
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  13 DEC 2022 02:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -149,42 +149,57 @@ Package caption Info: Standard document class detected.
 \c@subfigure=\count193
 \c@subtable=\count194
 )
+(/usr/local/texlive/2020/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count195
+\float@exts=\toks21
+\float@box=\box47
+\@float@everytoks=\toks22
+\@floatcapt=\box48
+)
+(/usr/local/texlive/2020/texmf-dist/tex/latex/multirow/multirow.sty
+Package: multirow 2019/05/31 v2.5 Span multiple rows of a table
+\multirow@colwidth=\skip52
+\multirow@cntb=\count196
+\multirow@dima=\skip53
+\bigstrutjot=\dimen166
+)
 (/usr/local/texlive/2020/texmf-dist/tex/latex/l3backend/l3backend-pdfmode.def
 File: l3backend-pdfmode.def 2020-03-12 L3 backend support: PDF mode
-\l__kernel_color_stack_int=\count195
-\l__pdf_internal_box=\box47
+\l__kernel_color_stack_int=\count197
+\l__pdf_internal_box=\box49
 )
 (./table.aux)
 \openout1 = `table.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
 
 (/usr/local/texlive/2020/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count196
-\scratchdimen=\dimen166
-\scratchbox=\box48
-\nofMPsegments=\count197
-\nofMParguments=\count198
-\everyMPshowfont=\toks21
-\MPscratchCnt=\count199
-\MPscratchDim=\dimen167
-\MPnumerator=\count266
-\makeMPintoPDFobject=\count267
-\everyMPtoPDFconversion=\toks22
+\scratchcounter=\count198
+\scratchdimen=\dimen167
+\scratchbox=\box50
+\nofMPsegments=\count199
+\nofMParguments=\count266
+\everyMPshowfont=\toks23
+\MPscratchCnt=\count267
+\MPscratchDim=\dimen168
+\MPnumerator=\count268
+\makeMPintoPDFobject=\count269
+\everyMPtoPDFconversion=\toks24
 ) (/usr/local/texlive/2020/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
@@ -195,337 +210,43 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
 
-Underfull \hbox (badness 10000) in paragraph at lines 54--54
-[]\OT1/cmr/m/n/10 Converage
- []
+(./table1.tex) [1
 
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 54--54
-[][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 54--54
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 54--54
-[][] 
- []
-
-
-Overfull \hbox (28.09692pt too wide) in paragraph at lines 54--54
+{/usr/local/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./tabl
+e2.tex
+Overfull \hbox (56.2925pt too wide) in paragraph at lines 17--17
  [][] 
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 97--97
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 97--97
-[][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 97--97
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 97--97
-[][] 
- []
-
-
-Overfull \hbox (28.09692pt too wide) in paragraph at lines 97--97
+) [2] (./table3.tex) (./table4.tex
+Overfull \hbox (35.70177pt too wide) in paragraph at lines 38--38
  [][] 
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 140--140
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 140--140
-[][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 140--140
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 140--140
-[][] 
- []
-
-
-Overfull \hbox (28.09692pt too wide) in paragraph at lines 140--140
- [][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 177--177
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 177--177
-[][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 177--177
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 177--177
-[][] 
- []
-
-
-Overfull \hbox (28.09692pt too wide) in paragraph at lines 177--177
- [][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 214--214
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 214--214
-[][] 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 214--214
-[]\OT1/cmr/m/n/10 Converage
- []
-
-
-Overfull \hbox (42.03992pt too wide) in paragraph at lines 214--214
-[][] 
- []
-
-
-Overfull \hbox (28.09692pt too wide) in paragraph at lines 214--214
- [][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 258--258
-[][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 258--258
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 258--258
- [][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 301--301
-[][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 301--301
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 301--301
- [][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 344--344
-[][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 344--344
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 344--344
- [][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 387--387
-[][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 387--387
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 387--387
- [][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 430--430
-[][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 430--430
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 430--430
- [][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 473--473
-[][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 473--473
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 473--473
- [][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 516--516
-[][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 516--516
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 516--516
- [][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 559--559
-[][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 559--559
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 559--559
- [][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 602--602
-[][] 
- []
-
-
-Overfull \hbox (32.34795pt too wide) in paragraph at lines 602--602
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 602--602
- [][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 645--645
-[][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 645--645
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 645--645
- [][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 688--688
-[][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 688--688
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 688--688
- [][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 731--731
-[][] 
- []
-
-
-Overfull \hbox (37.34796pt too wide) in paragraph at lines 731--731
-[][] 
- []
-
-
-Overfull \hbox (55.26955pt too wide) in paragraph at lines 731--731
- [][] 
- []
-
-[1
-
-{/usr/local/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-[2] [3] [4] [5] (./table.aux) ) 
+) [3] [4] (./table.aux) ) 
 Here is how much of TeX's memory you used:
- 3096 strings out of 480608
- 48072 string characters out of 5903631
- 364178 words of memory out of 5000000
- 18993 multiletter control sequences out of 15000+600000
- 537638 words of font info for 43 fonts, out of 8000000 for 9000
+ 3114 strings out of 480608
+ 47558 string characters out of 5903631
+ 353764 words of memory out of 5000000
+ 18999 multiletter control sequences out of 15000+600000
+ 536501 words of font info for 39 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 48i,14n,46p,341b,495s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2020/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmr10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmr12.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmr17.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmr7.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmr9.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmsy10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmsy7.pfb>
-Output written on table.pdf (5 pages, 91582 bytes).
+ 48i,12n,46p,289b,271s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2020/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmr10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr12.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmr17.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmr7.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmsy10.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmsy7.pfb>
+Output written on table.pdf (4 pages, 81884 bytes).
 PDF statistics:
- 52 PDF objects out of 1000 (max. 8388607)
- 36 compressed objects within 1 object stream
+ 45 PDF objects out of 1000 (max. 8388607)
+ 31 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

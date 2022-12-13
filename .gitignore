@@ -1,0 +1,12 @@
+.ipynb_checkpoints/*
+*/.ipynb_checkpoints/*
+__pycache__/*
+.DS_Store
+*/*.aux
+*/*.pdf
+*/*.ps
+*/*.log
+*/*.dvi
+*/*.tex~
+*/*.fdb_latexmk
+*/*.fls

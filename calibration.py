@@ -13,7 +13,7 @@ utils = importr('utils')
 importr('stats')
 try:
     importr('ks')
-except RRuntimeError:
+except:
     utils.install_packages('ks', contribulr="https://cran.microsoft.com/")
     importr('ks')
 

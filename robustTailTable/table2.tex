@@ -1,19 +1,19 @@
 \begin{table}[ht]
-    \centering\scalebox{0.75}{\begin{tabular}{cc|c|c}
+    \centering\scalebox{0.75}{\begin{tabular}{cc|ccc}
     \toprule
     \hline
-    \multicolumn{1}{c}{} & \multicolumn{1}{c}{} &\multicolumn{1}{|c|}{n = 500} & \multicolumn{1}{c}{n = 800}\\
-    Data Source & Constraint Setting & R.E./Estimated U.B./C.P.  & R.E./Estimated U.B./C.P. \\\hline
-\multirow{3}{*}{Gamma w. true quantile point 9.21.}&$(0,\chi^2)$& $2.24/2.07\times 10^{1}$/$ 1$ & $2.15/1.98\times 10^{1}$/$ 1$\\
-&$(1,\chi^2)$& $1.66/1.53\times 10^{1}$/$ 1$ & $1.60/1.47\times 10^{1}$/$ 1$\\
-&$(2,\chi^2)$& $1.57/1.44\times 10^{1}$/$ 1$ & $1.50/1.38\times 10^{1}$/$ 1$\\\hline 
-\multirow{3}{*}{Lognorm w. true quantile point 104.87.}&$(0,\chi^2)$& $0.26/2.71\times 10^{1}$/$ 0$ & $0.28/2.99\times 10^{1}$/$ 0$\\
-&$(1,\chi^2)$& $0.18/1.92\times 10^{1}$/$ 0$ & $0.20/2.11\times 10^{1}$/$ 0$\\
-&$(2,\chi^2)$& $0.17/1.80\times 10^{1}$/$ 0$ & $0.19/1.98\times 10^{1}$/$ 0$\\\hline 
-\multirow{3}{*}{Pareto w. true quantile point 1000.00.}&$(0,\chi^2)$& $0.13/1.35\times 10^{2}$/$ 0$ & $0.14/1.37\times 10^{2}$/$ 0$\\
-&$(1,\chi^2)$& $0.10/9.60\times 10^{1}$/$ 0$ & $0.10/9.72\times 10^{1}$/$ 0$\\
-&$(2,\chi^2)$& $0.09/9.01\times 10^{1}$/$ 0$ & $0.09/9.13\times 10^{1}$/$ 0$\\
+    Data Source & Constraint Setting & Relative Error & Upper Bound & Coverage Probability \\\hline
+\multirow{3}{*}{Gamma w. true quantile point 9.21.}&$(0,\chi^2)$& $2.24$ & $2.07\times 10^{1}$ & $ 1$\\
+&$(1,\chi^2)$& $1.66$ & $1.53\times 10^{1}$ & $ 1$\\
+&$(2,\chi^2)$& $1.57$ & $1.44\times 10^{1}$ & $ 1$\\\hline 
+\multirow{3}{*}{Lognorm w. true quantile point 104.87.}&$(0,\chi^2)$& $0.26$ & $2.71\times 10^{1}$ & $ 0$\\
+&$(1,\chi^2)$& $0.18$ & $1.92\times 10^{1}$ & $ 0$\\
+&$(2,\chi^2)$& $0.17$ & $1.80\times 10^{1}$ & $ 0$\\\hline 
+\multirow{3}{*}{Pareto w. true quantile point 1000.00.}&$(0,\chi^2)$& $0.13$ & $1.35\times 10^{2}$ & $ 0$\\
+&$(1,\chi^2)$& $0.10$ & $9.60\times 10^{1}$ & $ 0$\\
+&$(2,\chi^2)$& $0.09$ & $9.01\times 10^{1}$ & $ 0$\\
+    \hline
     \bottomrule
-    \end{tabular}}\caption{Quantitle estimation under different constraint settings. }
+    \end{tabular}}\caption{Quantile estimation under different constraint settings. }
     \label{tb2_qe}
 \end{table}

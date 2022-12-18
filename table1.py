@@ -8,7 +8,7 @@ import itertools
 import sys
 import traceback
 
-FILE_DIR = "small"
+FILE_DIR = "large"
 metaDataDict = {"dataSize": 500,
                 "percentageLHS": 0.99,
                 "percentageRHS": 0.995,
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
        os.mkdir(FILE_DIR)
-    nExperimentReptition = 10
+    nExperimentReptition = 200
     randomSeed = 20220222
     trueValue = 0.005
     dataDistributions = ['gamma', 'lognorm', 'pareto']

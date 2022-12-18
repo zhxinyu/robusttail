@@ -7,7 +7,7 @@ import os
 import itertools
 import sys
 import traceback
-FILE_DIR = "small"
+FILE_DIR = "large"
 metaDataDict = {"dataSize": 500,
                 "quantitleValue": 0.99,
                 "thresholdPercentage": 0.7,
@@ -31,14 +31,15 @@ if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
         os.mkdir(FILE_DIR)
-    nExperimentReptition = 10
+    nExperimentReptition = 200
     randomSeed = 20220222
     # trueValue = dpu.endPointGeneration(
     #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
     dataDistributions = ['gamma', 'lognorm', 'pareto']
     thresholdPercentages = [0.6]
-    # served as the target percentage the problem aims to estimate the quantile point from.
-    quantitleValues = np.linspace(0.9, 0.99, 10).tolist()
+    # served as the target percentage the problem aims to estimate the quantile point from. 
+    quantitleValues = [0.99]
+
     dataSizes = [500]
     for dataDistribution, dataSize, quantitleValue, thresholdPercentage in itertools.product(*[dataDistributions, dataSizes, quantitleValues, thresholdPercentages]):
         metaDataDict["dataSize"] = dataSize
@@ -55,7 +56,7 @@ if __name__ == '__main__':
         FILE_NAME += ["randomSeed="+str(randomSeed)]
         FILE_NAME += ["nExperimentReptition="+str(nExperimentReptition)]
         FILE_NAME = '_'.join(FILE_NAME)+".csv"
-        FILE_NAME = FILE_NAME.replace("00000000000001","").replace("0000000000001","")
+        FILE_NAME = FILE_NAME.replace("00000000000001","").replace("0000000000001","").replace("0.8999999999999999","0.9")
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))
@@ -71,7 +72,7 @@ if __name__ == '__main__':
                                       )
                     print(df.mean(axis=0).values)
                     df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                              header=["(1,KS)", "(2,KS)", "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                              header=["(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
                               index=True,
                               index_label="Experiment Repetition Index")
                     del df

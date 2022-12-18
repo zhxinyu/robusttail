@@ -8,7 +8,7 @@ import itertools
 import sys
 import traceback
 
-FILE_DIR = "small"
+FILE_DIR = "large"
 metaDataDict = {"dataSize": 500,
                 "percentageLHS": 0.99,
                 "percentageRHS": 0.995,
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
         os.mkdir(FILE_DIR)
-    nExperimentReptition = 10
+    nExperimentReptition = 200
     randomSeed = 20220222
     trueValue = 0.005
     dataDistributions = ['gamma', 'lognorm', 'pareto']
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         FILE_NAME += ["randomSeed="+str(randomSeed)]
         FILE_NAME += ["nExperimentReptition="+str(nExperimentReptition)]
         FILE_NAME = '_'.join(FILE_NAME)+".csv"
-        FILE_NAME = FILE_NAME.replace("00000000000001","").replace("0000000000001","")
+        FILE_NAME = FILE_NAME.replace("00000000000001","").replace("0000000000001","").replace("0.8999999999999999","0.9")
         if os.path.exists(os.path.join(FILE_DIR, FILE_NAME)):
             print("Note: Already exists! Write: " +
                   os.path.join(FILE_DIR, FILE_NAME))

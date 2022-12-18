@@ -16,8 +16,7 @@ def quantileEstimationWithRectangularConstraintBinarySearchUnit(D: int, inputDat
             thresholdPercentage) >= 2
         assert all(isinstance(
             eachThresholdPercentage, float) for eachThresholdPercentage in thresholdPercentage)
-        startQuantilePoint = np.quantile(
-            inputData, np.max(thresholdPercentage))
+        startQuantilePoint = np.quantile(inputData, np.max(thresholdPercentage))
 
     targetValue = 1 - quantitleValue
     currentValue = np.inf
@@ -91,26 +90,26 @@ def quantileEstimationnPerRep(dataModule,
 
     inputData = dpu.RawDataGeneration(
         dataModule, dpu.dataModuleToDefaultParamDict[dataModule], dataSize, random_state)
-    outputPerRep = [0]*5
-    outputPerRep[0] = quantileEstimationWithRectangularConstraintBinarySearchUnit(1, inputData,
-                                                                                  thresholdPercentage,
-                                                                                  quantitleValue, alpha, 7*random_state+1)
+    outputPerRep = []
+    # outputPerRep.append(quantileEstimationWithRectangularConstraintBinarySearchUnit(1, inputData,
+    #                                                                               thresholdPercentage,
+    #                                                                               quantitleValue, alpha, 7*random_state+1))
 
-    outputPerRep[1] = quantileEstimationWithRectangularConstraintBinarySearchUnit(2, inputData,
-                                                                                  thresholdPercentage,
-                                                                                  quantitleValue, alpha, 7*random_state+1)
+    # outputPerRep.append(quantileEstimationWithRectangularConstraintBinarySearchUnit(2, inputData,
+    #                                                                               thresholdPercentage,
+    #                                                                               quantitleValue, alpha, 7*random_state+1))
 
-    outputPerRep[2] = quantileEstimationBinarySearchUnit(0, inputData,
+    outputPerRep.append(quantileEstimationBinarySearchUnit(0, inputData,
                                                          thresholdPercentage,
-                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1)
+                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1))
 
-    outputPerRep[3] = quantileEstimationBinarySearchUnit(1, inputData,
+    outputPerRep.append(quantileEstimationBinarySearchUnit(1, inputData,
                                                          thresholdPercentage,
-                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1)
+                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1))
 
-    outputPerRep[4] = quantileEstimationBinarySearchUnit(2, inputData,
+    outputPerRep.append(quantileEstimationBinarySearchUnit(2, inputData,
                                                          thresholdPercentage,
-                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1)
+                                                         quantitleValue, gEllipsoidalDimension, alpha, 7*random_state+1))
     return outputPerRep
 
 

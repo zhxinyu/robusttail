@@ -7,7 +7,7 @@ import os
 import itertools
 import sys
 import traceback
-FILE_DIR = "small"
+FILE_DIR = "large"
 metaDataDict = {"dataSize": 500,
                 "quantitleValue": 0.99,
                 "thresholdPercentage": 0.7,
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     ## generate a folder `testResult` if it does not exist.
     if not os.path.isdir(FILE_DIR):
         os.mkdir(FILE_DIR)
-    nExperimentReptition = 10
+    nExperimentReptition = 200
     randomSeed = 20220222
     # trueValue = dpu.endPointGeneration(
     #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                                       )
                     print(df.mean(axis=0).values)
                     df.to_csv(os.path.join(FILE_DIR, FILE_NAME),
-                              header=["(1,KS)", "(2,KS)", "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
+                              header=["(0,CHI2)", "(1,CHI2)", "(2,CHI2)"],
                               index=True,
                               index_label="Experiment Repetition Index")
                     del df

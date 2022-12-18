@@ -174,7 +174,7 @@ def tableFiveThreeUnit(thresholds, dataSource,
 
     content+=r"&${:}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
         thresholds, 
-        RelativeRatios[i][0][0], significance0, int(exponent0), CoverageProbabilities[i][0][0])
+        RelativeRatios[-1][0][0], significance0, int(exponent0), CoverageProbabilities[-1][0][0])
     content+="\\\\"
     return content
 
@@ -197,7 +197,7 @@ def tableFiveThreeUnitQE(thresholds, dataSource,
 
     content+=r"&${:}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
         thresholds, 
-        RelativeRatios[i][0][0], significance0, int(exponent0), CoverageProbabilities[i][0][0])
+        RelativeRatios[-1][0][0], significance0, int(exponent0), CoverageProbabilities[-1][0][0])
     content+="\\\\"
     return content
 

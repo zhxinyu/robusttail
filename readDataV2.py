@@ -7,8 +7,8 @@ import dataPreparationUtils as dpu
 from scipy.stats import gamma, lognorm, pareto, genpareto
 
 
-FILE_DIR = "small"
-nExperimentReptition = 10
+FILE_DIR = "large"
+nExperimentReptition = 200
 randomSeed = 20220222
 trueValue = 0.005
 dataDistributions = ['gamma', 'lognorm', 'pareto']

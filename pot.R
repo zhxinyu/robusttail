@@ -82,16 +82,14 @@ asymptoticCIforGPDfit_m <- function(fitGPD,h,hGrad, alpha = 0.05,verbose = TRUE)
 
 a = qnorm(0.99)
 b = qnorm(0.995)
-for (i in 1:1) {
-  data <- rnorm(500)
-  u <- MEplotFindThresh(data)$thresh
-  perc_u <- MEplotFindThresh(data)$perc.thresh
-  fitGPD <- tryCatch(
-    QRM::fit.GPD(data,threshold = u,type = "ml"), 
-    error = function(e)e)
-  Ubd <- if ("error" %in% class(fitGPD)) NA else{
-    h <- function(xi, beta) QRM::pGPD(b -u,xi,beta) - QRM::pGPD(a -u,xi,beta)
-    hGrad <- function(xi,beta) gradientpGPD(b-u,xi,beta) - gradientpGPD(a-u,xi,beta)
-    asymptoticCIforGPDfit_m(fitGPD,h,hGrad,verbose = FALSE)
-  }
+data <- rnorm(500)
+u <- MEplotFindThresh(data)$thresh
+perc_u <- MEplotFindThresh(data)$perc.thresh
+fitGPD <- tryCatch(
+QRM::fit.GPD(data,threshold = u,type = "ml"), 
+error = function(e)e)
+Ubd <- if ("error" %in% class(fitGPD)) NA else{
+h <- function(xi, beta) QRM::pGPD(b -u,xi,beta) - QRM::pGPD(a -u,xi,beta)
+hGrad <- function(xi,beta) gradientpGPD(b-u,xi,beta) - gradientpGPD(a-u,xi,beta)
+asymptoticCIforGPDfit_m(fitGPD,h,hGrad,verbose = FALSE)
 }

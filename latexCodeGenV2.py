@@ -5,11 +5,11 @@ def getSignificanceNExponent (value: float):
         exponent = np.floor(np.log(value)/np.log(10))
         return (value/10**exponent, exponent)
     
-def tableFiveOneUnit(targetColumns, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities):
+def tableFiveOneUnit(targetColumns, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE):
     content = r""
     for i, targetColumn in enumerate(targetColumns):
         significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[0][i])
-        significance1, exponent1 = getSignificanceNExponent(StandardErrors[0][i])
+        significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBoundsSE[0][i])
         if i == 0:
             content+="\multirow{{{:}}}{{*}}{{{:}}}".format(len(targetColumns), dataSource.capitalize())
         if targetColumn == '(0,CHI2)':
@@ -27,8 +27,8 @@ def tableFiveOneUnit(targetColumns, dataSource, EstimatedUpperBounds, StandardEr
         else:
             print(targetColumn)
             assert False
-        content+=r"& ${:.2f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
-            RelativeRatios[0][i], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[0][i])
+        content+=r"& ${:.2f}(\pm{:.2f})$ & ${:.2f}\times 10^{{{:d}}}(\pm {:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm {:.3f})$".format(
+            RelativeRatios[0][i], RelativeRatiosSE[0][i], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[0][i], CoverageProbabilitiesSE[0][i])
         if i==len(targetColumns)-1: 
             content+="\\\\"
         else:
@@ -45,15 +45,20 @@ def tableFiveOne(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
         RelativeRatios = [ 0 for _ in range(len(nDatas))]
         CoverageProbabilities = [ 0 for _ in range(len(nDatas))]
         EstimatedUpperBounds = [ 0 for _ in range(len(nDatas))]
-        StandardErrors = [0 for _ in range(len(nDatas))]
+        RelativeRatiosSE = [ 0 for _ in range(len(nDatas))]
+        CoverageProbabilitiesSE = [ 0 for _ in range(len(nDatas))]
+        EstimatedUpperBoundsSE = [ 0 for _ in range(len(nDatas))]
         for i, nData in enumerate(nDatas):
             currKeyChoice = (dataSource, nData, percentageLHS, thresholdPercentage)
             trueValues.append(groupby_object1.get_group(currKeyChoice)['trueValue'].unique()[0])
+            nExp = groupby_object1.get_group(currKeyChoice)[targetColumns].count()[0]
             EstimatedUpperBounds[i]= groupby_object1.get_group(currKeyChoice)[targetColumns].mean().tolist()
-            StandardErrors[i] = groupby_object1.get_group(currKeyChoice)[targetColumns].std().tolist()
+            EstimatedUpperBoundsSE[i] = (groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist() 
             RelativeRatios[i] = (groupby_object1.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
+            RelativeRatiosSE[i] = ((groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).values/trueValues[-1]).tolist()
             CoverageProbabilities[i]=(groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
-        contents.append(tableFiveOneUnit(targetColumns, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities))
+            CoverageProbabilitiesSE[i]=((groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()
+        contents.append(tableFiveOneUnit(targetColumns, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE))
     ## trueValue should be same among different percentageLHS.         
     assert np.unique(trueValues).size == 1         
     return ("\\hline \n".join(contents), trueValues[0])
@@ -65,14 +70,14 @@ def getTableOne(go1:pd.core.groupby.generic.DataFrameGroupBy,
                  title:str, label: str, scalebox: float):
     content, trueValue = tableFiveOne(go1, dataSources, nDatas, percentageLHS, thresholdPercentage, targetColumns)
     latexTable= r'''
-\begin{table}[!ht]
+\begin{table}[ht]
     \centering'''+\
     r'''\scalebox{{{:}}}{{'''.format(scalebox)+\
-    r'''\begin{tabular}{cc|cccc}
+    r'''\begin{tabular}{cc|ccc}
     \toprule
     \hline
     '''+\
-    r'''Data Source & Constraint Setting & Relative Ratio & Upper Bound & Standard Error & Coverage Probability\\\hline'''+"\n"+\
+    r'''Data Source & Constraint Setting & Relative Ratio & Upper Bound & Coverage Probability\\\hline'''+"\n"+\
     content+\
     r'''
     \hline
@@ -85,11 +90,11 @@ def getTableOne(go1:pd.core.groupby.generic.DataFrameGroupBy,
     return latexTable
 
 
-def tableFiveTwoUnit(trueValue, targetColumns, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities):
+def tableFiveTwoUnit(trueValue, targetColumns, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE):
     content = r""
     for i, targetColumn in enumerate(targetColumns):
         significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[0][i])
-        significance1, exponent1 = getSignificanceNExponent(StandardErrors[0][i])
+        significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBoundsSE[0][i])
         if i == 0:
             content+="\multirow{{{:}}}{{*}}{{{:}}}".format(len(targetColumns), dataSource.capitalize()+" w. true quantile point {:.2f}.".format(trueValue))
         if targetColumn == '(0,CHI2)':
@@ -107,8 +112,8 @@ def tableFiveTwoUnit(trueValue, targetColumns, dataSource, EstimatedUpperBounds,
         else:
             print(targetColumn)
             assert False
-        content+=r"& ${:.2f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
-            RelativeRatios[0][i], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[0][i])
+        content+=r"& ${:.2f}(\pm{:.2f})$ & ${:.2f}\times 10^{{{:d}}}(\pm {:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm {:.3f})$".format(
+            RelativeRatios[0][i], RelativeRatiosSE[0][i], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[0][i], CoverageProbabilitiesSE[0][i])
         if i==len(targetColumns)-1: 
             content+="\\\\"
         else:
@@ -125,15 +130,20 @@ def tableFiveTwo(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
         RelativeRatios = [ 0 for _ in range(len(nDatas))]
         CoverageProbabilities = [ 0 for _ in range(len(nDatas))]
         EstimatedUpperBounds = [ 0 for _ in range(len(nDatas))]
-        StandardErrors = [ 0 for _ in range(len(nDatas))]
+        RelativeRatiosSE = [ 0 for _ in range(len(nDatas))]
+        CoverageProbabilitiesSE = [ 0 for _ in range(len(nDatas))]
+        EstimatedUpperBoundsSE = [ 0 for _ in range(len(nDatas))]
         for i, nData in enumerate(nDatas):
             currKeyChoice = (dataSource, nData, percentageLHS, thresholdPercentage)
             trueValues.append(groupby_object1.get_group(currKeyChoice)['trueValue'].unique()[0])
+            nExp = groupby_object1.get_group(currKeyChoice)[targetColumns].count()[0]
             EstimatedUpperBounds[i]= groupby_object1.get_group(currKeyChoice)[targetColumns].mean().tolist()
-            StandardErrors[i]= groupby_object1.get_group(currKeyChoice)[targetColumns].std().tolist()
+            EstimatedUpperBoundsSE[i]= (groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist()
             RelativeRatios[i] = (groupby_object1.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
+            RelativeRatiosSE[i] = ((groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)) .values/trueValues[-1]).tolist()
             CoverageProbabilities[i]=(groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
-        contents.append(tableFiveTwoUnit(trueValues[-1], targetColumns, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities))
+            CoverageProbabilitiesSE[i]=((groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()
+        contents.append(tableFiveTwoUnit(trueValues[-1], targetColumns, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE))
     return ("\\hline \n".join(contents), trueValues[0])
 
     
@@ -146,11 +156,11 @@ def getTableTwo(go3:pd.core.groupby.generic.DataFrameGroupBy,
 \begin{table}[ht]
     \centering'''+\
     r'''\scalebox{{{:}}}{{'''.format(scalebox)+\
-    r'''\begin{tabular}{cc|cccc}
+    r'''\begin{tabular}{cc|ccc}
     \toprule
     \hline
     '''+\
-    r'''Data Source & Constraint Setting & Relative Ratio & Upper Bound & Standard Error & Coverage Probability \\\hline'''+"\n"+\
+    r'''Data Source & Constraint Setting & Relative Ratio & Upper Bound & Coverage Probability \\\hline'''+"\n"+\
     content+\
     r'''
     \hline
@@ -163,51 +173,51 @@ def getTableTwo(go3:pd.core.groupby.generic.DataFrameGroupBy,
     return latexTable
     
 def tableFiveThreeUnit(thresholds, dataSource,
-                      EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities):
+                      EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE):
     
     content = r""
     for i, threshold in enumerate(thresholds):
         significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[i][0][0])
-        significance1, exponent1 = getSignificanceNExponent(StandardErrors[i][0][0])
+        significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBoundsSE[i][0][0])
         if i == 0:
             content+="\multirow{{{:}}}{{*}}{{{:}}}".format(len(thresholds)+1, dataSource.capitalize())
 
-        content+=r"&${:.3f}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
+        content+=r"&${:.3f}$ & ${:.3f}(\pm{:.3f})$ & ${:.2f}\times 10^{{{:d}}}(\pm{:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm{:.3f})$".format(
             threshold, 
-            RelativeRatios[i][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[i][0][0])
+            RelativeRatios[i][0][0], RelativeRatiosSE[i][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[i][0][0], CoverageProbabilitiesSE[i][0][0])
         content+="\\\\\n"
 
     significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[-1][0][0])
-    significance1, exponent1 = getSignificanceNExponent(StandardErrors[-1][0][0])
+    significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBoundsSE[-1][0][0])
 
-    content+=r"&${:}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
-        thresholds, 
-        RelativeRatios[-1][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[-1][0][0])
+    content+=r"&${:}$ & ${:.3f}(\pm{:.3f})$ & ${:.2f}\times 10^{{{:d}}}(\pm{:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm{:.3f})$".format(
+            thresholds, 
+            RelativeRatios[-1][0][0], RelativeRatiosSE[-1][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[-1][0][0], CoverageProbabilitiesSE[-1][0][0])
     content+="\\\\"
     return content
 
 
 def tableFiveThreeUnitQE(thresholds, dataSource,
-                      EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities, trueValue):
+                      EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE, trueValue):
     
     content = r""
     for i, threshold in enumerate(thresholds):
         significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[i][0][0])
-        significance1, exponent1 = getSignificanceNExponent(StandardErrors[i][0][0])
+        significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBoundsSE[i][0][0])
         if i == 0:
             content+="\multirow{{{:}}}{{*}}{{{:}}}".format(len(thresholds)+1, dataSource.capitalize()+" w. true quantile point {:.2f}".format(trueValue))
 
-        content+=r"&${:.3f}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
+        content+=r"&${:.3f}$ & ${:.3f}(\pm{:.3f})$ & ${:.2f}\times 10^{{{:d}}}(\pm{:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm{:.3f})$".format(
             threshold, 
-            RelativeRatios[i][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[i][0][0])
+            RelativeRatios[i][0][0], RelativeRatiosSE[i][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[i][0][0], CoverageProbabilitiesSE[i][0][0])
         content+="\\\\\n"
 
     significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[-1][0][0])
-    significance1, exponent1 = getSignificanceNExponent(StandardErrors[-1][0][0])
+    significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBoundsSE[-1][0][0])
 
-    content+=r"&${:}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
-        thresholds, 
-        RelativeRatios[-1][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[-1][0][0])
+    content+=r"&${:}$ & ${:.3f}(\pm{:.3f})$ & ${:.2f}\times 10^{{{:d}}}(\pm{:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm{:.3f})$".format(
+            thresholds, 
+            RelativeRatios[-1][0][0], RelativeRatiosSE[-1][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[-1][0][0], CoverageProbabilitiesSE[-1][0][0])
     content+="\\\\"
     return content
 
@@ -227,25 +237,33 @@ def tableFiveThree(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
         RelativeRatios = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
         CoverageProbabilities = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
         EstimatedUpperBounds = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
-        StandardErrors = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
+        RelativeRatiosSE = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
+        CoverageProbabilitiesSE = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
+        EstimatedUpperBoundsSE = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
         for i in range(numMultiThreshold):
             for j, nData in enumerate(nDatas):
                 currKeyChoice = (dataSource, nData, percentageLHS, round(thresholdPercentage+0.1*i,1))
                 trueValues.append(groupby_object1.get_group(currKeyChoice)['trueValue'].unique()[0])
+                nExp = groupby_object1.get_group(currKeyChoice)[targetColumns].count()[0]
                 EstimatedUpperBounds[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].mean().tolist()
-                StandardErrors[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].std().tolist()
+                EstimatedUpperBoundsSE[i][j]= (groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist()
                 RelativeRatios[i][j] = (groupby_object1.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
+                RelativeRatiosSE[i][j] = ((groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).values/trueValues[-1]).tolist()
                 CoverageProbabilities[i][j]=(groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
+                CoverageProbabilitiesSE[i][j]=((groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()
         for j, nData in enumerate(nDatas):
             currKeyChoice = (dataSource, nData, percentageLHS, thresholdPercentage)
             trueValues.append(groupby_object2.get_group(currKeyChoice)['trueValue'].unique()[0])
+            nExp = groupby_object2.get_group(currKeyChoice)[targetColumns].count()[0]
             EstimatedUpperBounds[numMultiThreshold][j]= groupby_object2.get_group(currKeyChoice)[targetColumns].mean().tolist()
-            StandardErrors[numMultiThreshold][j]= groupby_object2.get_group(currKeyChoice)[targetColumns].std().tolist()
+            EstimatedUpperBoundsSE[numMultiThreshold][j]= (groupby_object2.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist()
             RelativeRatios[numMultiThreshold][j] = (groupby_object2.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
-            CoverageProbabilities[numMultiThreshold][j]=(groupby_object2.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()        
+            RelativeRatiosSE[numMultiThreshold][j] = ((groupby_object2.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).values/trueValues[-1]).tolist()
+            CoverageProbabilities[numMultiThreshold][j]=(groupby_object2.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
+            CoverageProbabilitiesSE[numMultiThreshold][j]=((groupby_object2.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()
             
         thresholds = [round(thresholdPercentage+0.1*i,1) for i in range(numMultiThreshold)]            
-        contents.append(tableFiveThreeUnit(thresholds, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities))
+        contents.append(tableFiveThreeUnit(thresholds, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE))
         
     ## trueValue should be same among different thresholdPercentage.         
     assert np.unique(trueValues).size == 1         
@@ -262,26 +280,34 @@ def tableFiveThreeQE(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
         RelativeRatios = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
         CoverageProbabilities = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
         EstimatedUpperBounds = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
-        StandardErrors = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
+        RelativeRatiosSE = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
+        CoverageProbabilitiesSE = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
+        EstimatedUpperBoundsSE = [[ 0 for _ in range(len(nDatas))] for _ in range(numMultiThreshold+1)]
         for i in range(numMultiThreshold):
             for j, nData in enumerate(nDatas):
                 currKeyChoice = (dataSource, nData, percentageLHS, round(thresholdPercentage+0.1*i,1))
                 trueValues.append(groupby_object1.get_group(currKeyChoice)['trueValue'].unique()[0])
+                nExp = groupby_object1.get_group(currKeyChoice)[targetColumns].count()[0]
                 EstimatedUpperBounds[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].mean().tolist()
-                StandardErrors[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].std().tolist()
+                EstimatedUpperBoundsSE[i][j]= (groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist()
                 RelativeRatios[i][j] = (groupby_object1.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
+                RelativeRatiosSE[i][j] = ((groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).values/trueValues[-1]).tolist()
                 CoverageProbabilities[i][j]=(groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
+                CoverageProbabilitiesSE[i][j]=((groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()
         for j, nData in enumerate(nDatas):
             currKeyChoice = (dataSource, nData, percentageLHS, thresholdPercentage)
             trueValues.append(groupby_object2.get_group(currKeyChoice)['trueValue'].unique()[0])
+            nExp = groupby_object2.get_group(currKeyChoice)[targetColumns].count()[0]
             EstimatedUpperBounds[numMultiThreshold][j]= groupby_object2.get_group(currKeyChoice)[targetColumns].mean().tolist()
-            StandardErrors[numMultiThreshold][j]= groupby_object2.get_group(currKeyChoice)[targetColumns].std().tolist()
+            EstimatedUpperBoundsSE[numMultiThreshold][j]= (groupby_object2.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist()
             RelativeRatios[numMultiThreshold][j] = (groupby_object2.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
-            CoverageProbabilities[numMultiThreshold][j]=(groupby_object2.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()        
+            RelativeRatiosSE[numMultiThreshold][j] = ((groupby_object2.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).values/trueValues[-1]).tolist()
+            CoverageProbabilities[numMultiThreshold][j]=(groupby_object2.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
+            CoverageProbabilitiesSE[numMultiThreshold][j]=((groupby_object2.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()      
         ## trueValue should be same among different thresholdPercentage.         
         assert np.unique(trueValues).size == 1                 
         thresholds = [round(thresholdPercentage+0.1*i,1) for i in range(numMultiThreshold)]            
-        contents.append(tableFiveThreeUnitQE(thresholds, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities, trueValues[0]))
+        contents.append(tableFiveThreeUnitQE(thresholds, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE, trueValues[0]))
     return "\\hline \n".join(contents)
 
 def getTableThree(go1:pd.core.groupby.generic.DataFrameGroupBy, 
@@ -299,11 +325,11 @@ def getTableThree(go1:pd.core.groupby.generic.DataFrameGroupBy,
 \begin{table}[ht]
     \centering'''+\
     r'''\scalebox{{{:}}}{{'''.format(scalebox)+\
-    r'''\begin{tabular}{cc|cccc}
+    r'''\begin{tabular}{cc|ccc}
     \toprule
     \hline
     '''+\
-    r'''Data Source & Constraint Setting & Relative Ratio & Upper Bound & Standard Error & Coverage Probability \\\hline'''+"\n"+\
+    r'''Data Source & Constraint Setting & Relative Ratio & Upper Bound & Coverage Probability \\\hline'''+"\n"+\
     content+\
     r'''
     \hline
@@ -317,20 +343,20 @@ def getTableThree(go1:pd.core.groupby.generic.DataFrameGroupBy,
     return latexTable
         
 def tableFiveFourUnit(percentageLHSs, dataSource,
-                      EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities):
+                      EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE):
     content = r""
     for i, percentageLHS in enumerate(percentageLHSs):
         significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[i][0][0])
         significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBounds[i][0][1])
-        significance2, exponent2 = getSignificanceNExponent(StandardErrors[i][0][0])
-        significance3, exponent3 = getSignificanceNExponent(StandardErrors[i][0][1])
+        significance2, exponent2 = getSignificanceNExponent(EstimatedUpperBoundsSE[i][0][0])
+        significance3, exponent3 = getSignificanceNExponent(EstimatedUpperBoundsSE[i][0][1])
         if i == 0:
             content+="\multirow{{{:}}}{{*}}{{{:}}}".format(len(percentageLHSs), dataSource.capitalize())
             
-        content+=r"&${:.3f}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
+        content+=r"&${:.3f}$ & ${:.3f}(\pm{:.3f})$ & ${:.2f}\times 10^{{{:d}}}(\pm{:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm{:.3f})$ & ${:.3f}(\pm{:.3f})$ & ${:.2f}\times 10^{{{:d}}}(\pm{:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm{:.3f})$".format(
             percentageLHS, 
-            RelativeRatios[i][0][0], significance0, int(exponent0), significance2, int(exponent2), CoverageProbabilities[i][0][0],
-            RelativeRatios[i][0][1], significance1, int(exponent1), significance3, int(exponent3), CoverageProbabilities[i][0][1])
+            RelativeRatios[i][0][0], RelativeRatiosSE[i][0][0], significance0, int(exponent0), significance2, int(exponent2), CoverageProbabilities[i][0][0], CoverageProbabilitiesSE[i][0][0],
+            RelativeRatios[i][0][1], RelativeRatiosSE[i][0][1], significance1, int(exponent1), significance3, int(exponent3), CoverageProbabilities[i][0][1], CoverageProbabilitiesSE[i][0][1])
         if i==len(percentageLHSs)-1: 
             content+="\\\\"
         else:
@@ -350,16 +376,21 @@ def tableFiveFour(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
         RelativeRatios = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
         CoverageProbabilities = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
         EstimatedUpperBounds = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
-        StandardErrors = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        RelativeRatiosSE = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        CoverageProbabilitiesSE = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        EstimatedUpperBoundsSE = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
         for i, percentageLHS in enumerate(percentageLHSs):
             for j, nData in enumerate(nDatas):
                 currKeyChoice = (dataSource, nData, percentageLHS, thresholdPercentage)
                 trueValues.append(groupby_object1.get_group(currKeyChoice)['trueValue'].unique()[0])
+                nExp = groupby_object1.get_group(currKeyChoice)[targetColumns].count()[0]
                 EstimatedUpperBounds[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].mean().tolist()
-                StandardErrors[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].std().tolist()
+                EstimatedUpperBoundsSE[i][j]= (groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist()
                 RelativeRatios[i][j] = (groupby_object1.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
+                RelativeRatiosSE[i][j] = ((groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).values/trueValues[-1]).tolist()
                 CoverageProbabilities[i][j]=(groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
-        contents.append(tableFiveFourUnit(percentageLHSs, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities))
+                CoverageProbabilitiesSE[i][j]=((groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()
+        contents.append(tableFiveFourUnit(percentageLHSs, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE))
     ## trueValue should be same among different percentageLHS.         
     assert np.unique(trueValues).size == 1         
     return ("\\hline \n".join(contents), trueValues[0])
@@ -374,12 +405,12 @@ def getTableFour(go1:pd.core.groupby.generic.DataFrameGroupBy,
 \begin{table}[ht]
     \centering'''+\
     r'''\scalebox{{{:}}}{{'''.format(scalebox)+\
-    r'''\begin{tabular}{cc|cccc|cccc}
+    r'''\begin{tabular}{cc|ccc|ccc}
     \toprule
     \hline
     \multicolumn{1}{c}{} & \multicolumn{1}{c}{} &'''+\
-    r'''\multicolumn{4}{|c|}{{$(2,\chi^2)$}} & \multicolumn{4}{|c}{{$(2, \textup{KS})$}}''' +r'''\\
-    Data Source & LHS Quantitle & Relative Ratio & Upper Bound & Standard Error & Coverage Probability & Relative Ratio & Upper Bound & Standard Error & Coverage Probability \\\hline'''+"\n"+\
+    r'''\multicolumn{3}{|c|}{{$(2,\chi^2)$}} & \multicolumn{3}{|c}{{$(2, \textup{KS})$}}''' +r'''\\
+    Data Source & LHS Quantitle & Relative Ratio & Upper Bound & Coverage Probability & Relative Ratio & Upper Bound & Coverage Probability \\\hline'''+"\n"+\
     content+\
     r'''
     \hline
@@ -394,17 +425,17 @@ def getTableFour(go1:pd.core.groupby.generic.DataFrameGroupBy,
 
 
 def tableFiveUnit(percentageLHSs, dataSource,
-                      EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities):
+                      EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE):
     content = r""
     for i, percentageLHS in enumerate(percentageLHSs):
         significance0, exponent0 = getSignificanceNExponent(EstimatedUpperBounds[i][0][0]) 
-        significance1, exponent1 = getSignificanceNExponent(StandardErrors[i][0][0]) 
+        significance1, exponent1 = getSignificanceNExponent(EstimatedUpperBoundsSE[i][0][0]) 
         if i == 0:
             content+="\multirow{{{:}}}{{*}}{{{:}}}".format(len(percentageLHSs), dataSource.capitalize())
             
-        content+=r"&${:.3f}$ & ${:.3f}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:.2f}\times 10^{{{:d}}}$ & ${:2g}$".format(
+        content+=r"&${:.3f}$ & ${:.3f}(\pm{:.3f})$ & ${:.2f}\times 10^{{{:d}}}(\pm{:.2f}\times 10^{{{:d}}})$ & ${:.3f}(\pm{:.3f})$".format(
             percentageLHS, 
-            RelativeRatios[i][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[i][0][0])
+            RelativeRatios[i][0][0], RelativeRatiosSE[i][0][0], significance0, int(exponent0), significance1, int(exponent1), CoverageProbabilities[i][0][0], CoverageProbabilitiesSE[i][0][0])
         if i==len(percentageLHSs)-1: 
             content+="\\\\"
         else:
@@ -421,16 +452,21 @@ def tableFive(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
         RelativeRatios = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
         CoverageProbabilities = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
         EstimatedUpperBounds = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
-        StandardErrors = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        RelativeRatiosSE = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        CoverageProbabilitiesSE = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        EstimatedUpperBoundsSE = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
         for i, percentageLHS in enumerate(percentageLHSs):
             for j, nData in enumerate(nDatas):
                 currKeyChoice = (dataSource, nData, round(percentageLHS,2))
                 trueValues.append(groupby_object1.get_group(currKeyChoice)['True Value'].unique()[0])
+                nExp = groupby_object1.get_group(currKeyChoice)[targetColumns].count()[0]
                 EstimatedUpperBounds[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].mean().tolist()
-                StandardErrors[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].std().tolist()
+                EstimatedUpperBoundsSE[i][j]= (groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).tolist()
                 RelativeRatios[i][j] = (groupby_object1.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
+                RelativeRatiosSE[i][j] = ((groupby_object1.get_group(currKeyChoice)[targetColumns].std() * 1.96 / np.sqrt(nExp)).values/trueValues[-1]).tolist()
                 CoverageProbabilities[i][j]=(groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
-        contents.append(tableFiveUnit(percentageLHSs, dataSource, EstimatedUpperBounds, StandardErrors, RelativeRatios, CoverageProbabilities))
+                CoverageProbabilitiesSE[i][j]=((groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).std(axis=0) * 1.96 / np.sqrt(nExp)).tolist()
+        contents.append(tableFiveUnit(percentageLHSs, dataSource, EstimatedUpperBounds, EstimatedUpperBoundsSE, RelativeRatios, RelativeRatiosSE, CoverageProbabilities, CoverageProbabilitiesSE))
     ## trueValue should be same among different percentageLHS.         
     assert np.unique(trueValues).size == 1         
     return ("\\hline \n".join(contents), trueValues[0])
@@ -444,10 +480,10 @@ def getTableFive(go1:pd.core.groupby.generic.DataFrameGroupBy,
 \begin{table}[ht]
     \centering'''+\
     r'''\scalebox{{{:}}}{{'''.format(scalebox)+\
-    r'''\begin{tabular}{cc|cccc}
+    r'''\begin{tabular}{cc|ccc}
     \toprule
     \hline''' +r'''
-    Data Source & LHS Quantitle & Relative Ratio & Upper Bound & Standard Error & Coverage Probability \\\hline'''+"\n"+\
+    Data Source & LHS Quantitle & Relative Ratio & Upper Bound & Coverage Probability \\\hline'''+"\n"+\
     content+\
     r'''
     \hline

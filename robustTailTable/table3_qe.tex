@@ -1,23 +1,23 @@
 \begin{table}[ht]
-    \centering\scalebox{0.75}{\begin{tabular}{cc|cccc}
+    \centering\scalebox{0.75}{\begin{tabular}{cc|ccc}
     \toprule
     \hline
-    Data Source & Constraint Setting & Relative Ratio & Upper Bound & Standard Error & Coverage Probability \\\hline
-\multirow{5}{*}{Gamma w. true quantile point 3.32}&$0.600$ & $1.426$ & $4.73\times 10^{0}$ & $6.46\times 10^{-1}$ & $ 1$\\
-&$0.700$ & $1.392$ & $4.62\times 10^{0}$ & $6.64\times 10^{-1}$ & $0.995$\\
-&$0.800$ & $1.359$ & $4.51\times 10^{0}$ & $6.83\times 10^{-1}$ & $0.99$\\
-&$0.900$ & $1.331$ & $4.41\times 10^{0}$ & $7.04\times 10^{-1}$ & $0.98$\\
-&$[0.6, 0.7, 0.8, 0.9]$ & $1.354$ & $4.49\times 10^{0}$ & $7.34\times 10^{-1}$ & $0.98$\\\hline 
-\multirow{5}{*}{Lognorm w. true quantile point 10.24}&$0.600$ & $1.702$ & $1.74\times 10^{1}$ & $4.97\times 10^{0}$ & $0.995$\\
-&$0.700$ & $1.686$ & $1.73\times 10^{1}$ & $5.03\times 10^{0}$ & $0.99$\\
-&$0.800$ & $1.670$ & $1.71\times 10^{1}$ & $5.08\times 10^{0}$ & $0.985$\\
-&$0.900$ & $1.650$ & $1.69\times 10^{1}$ & $5.03\times 10^{0}$ & $0.97$\\
-&$[0.6, 0.7, 0.8, 0.9]$ & $1.690$ & $1.73\times 10^{1}$ & $5.27\times 10^{0}$ & $0.98$\\\hline 
-\multirow{5}{*}{Pareto w. true quantile point 21.54}&$0.600$ & $3.637$ & $7.83\times 10^{1}$ & $1.01\times 10^{2}$ & $0.99$\\
-&$0.700$ & $3.587$ & $7.73\times 10^{1}$ & $9.43\times 10^{1}$ & $0.985$\\
-&$0.800$ & $3.542$ & $7.63\times 10^{1}$ & $9.14\times 10^{1}$ & $0.985$\\
-&$0.900$ & $3.347$ & $7.21\times 10^{1}$ & $6.99\times 10^{1}$ & $0.985$\\
-&$[0.6, 0.7, 0.8, 0.9]$ & $3.584$ & $7.72\times 10^{1}$ & $8.58\times 10^{1}$ & $0.985$\\
+    Data Source & Constraint Setting & Relative Ratio & Upper Bound & Coverage Probability \\\hline
+\multirow{5}{*}{Gamma w. true quantile point 3.32}&$0.600$ & $1.426(\pm0.027)$ & $4.73\times 10^{0}(\pm8.95\times 10^{-2})$ & $1.000(\pm0.000)$\\
+&$0.700$ & $1.392(\pm0.028)$ & $4.62\times 10^{0}(\pm9.20\times 10^{-2})$ & $0.995(\pm0.010)$\\
+&$0.800$ & $1.359(\pm0.029)$ & $4.51\times 10^{0}(\pm9.47\times 10^{-2})$ & $0.990(\pm0.014)$\\
+&$0.900$ & $1.331(\pm0.029)$ & $4.41\times 10^{0}(\pm9.76\times 10^{-2})$ & $0.980(\pm0.019)$\\
+&$[0.6, 0.7, 0.8, 0.9]$ & $1.354(\pm0.031)$ & $4.49\times 10^{0}(\pm1.02\times 10^{-1})$ & $0.980(\pm0.019)$\\\hline 
+\multirow{5}{*}{Lognorm w. true quantile point 10.24}&$0.600$ & $1.702(\pm0.067)$ & $1.74\times 10^{1}(\pm6.89\times 10^{-1})$ & $0.995(\pm0.010)$\\
+&$0.700$ & $1.686(\pm0.068)$ & $1.73\times 10^{1}(\pm6.97\times 10^{-1})$ & $0.990(\pm0.014)$\\
+&$0.800$ & $1.670(\pm0.069)$ & $1.71\times 10^{1}(\pm7.04\times 10^{-1})$ & $0.985(\pm0.017)$\\
+&$0.900$ & $1.650(\pm0.068)$ & $1.69\times 10^{1}(\pm6.97\times 10^{-1})$ & $0.970(\pm0.024)$\\
+&$[0.6, 0.7, 0.8, 0.9]$ & $1.690(\pm0.071)$ & $1.73\times 10^{1}(\pm7.30\times 10^{-1})$ & $0.980(\pm0.019)$\\\hline 
+\multirow{5}{*}{Pareto w. true quantile point 21.54}&$0.600$ & $3.637(\pm0.648)$ & $7.83\times 10^{1}(\pm1.40\times 10^{1})$ & $0.990(\pm0.014)$\\
+&$0.700$ & $3.587(\pm0.607)$ & $7.73\times 10^{1}(\pm1.31\times 10^{1})$ & $0.985(\pm0.017)$\\
+&$0.800$ & $3.542(\pm0.588)$ & $7.63\times 10^{1}(\pm1.27\times 10^{1})$ & $0.985(\pm0.017)$\\
+&$0.900$ & $3.347(\pm0.450)$ & $7.21\times 10^{1}(\pm9.69\times 10^{0})$ & $0.985(\pm0.017)$\\
+&$[0.6, 0.7, 0.8, 0.9]$ & $3.584(\pm0.552)$ & $7.72\times 10^{1}(\pm1.19\times 10^{1})$ & $0.985(\pm0.017)$\\
     \hline
     \bottomrule
     \end{tabular}}\caption{Quantile estimation under different cutoff threshold(s). }

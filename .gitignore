@@ -10,3 +10,7 @@ __pycache__/*
 */*.tex~
 */*.fdb_latexmk
 */*.fls
+.vscode
+.lintr
+*.code-workspace
+pg.ipynb

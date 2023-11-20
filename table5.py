@@ -93,8 +93,8 @@ if __name__ == '__main__':
         gradient  <- hGrad(xi,beta)
         sdHat <- sqrt(t(gradient)%*%Sigma%*%gradient/nexc)
 
-        CI <- hHat + qnorm(1-alpha)*sdHat
-        output <- (1 - Fnu)*data.frame(uB = CI)
+        CI <- hHat + qnorm(c(alpha/2, 1-alpha/2))*sdHat
+        output <- (1 - Fnu)*data.frame(lB = CI[1], uB = CI[2])
       }
 
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     dataSources = ['gamma','lognorm','pareto']
     nrep = 200
     result = []
-    columns = ["Data Source", 'nData',"percentageLHS", "Upper Bound", "True Value", "Repetition Index"]
+    columns = ["Data Source", 'nData',"percentageLHS", "Lower Bound","Upper Bound", "True Value", "Repetition Index"]
     for percentageLHS in percentageLHSs:
         percentageRHS = percentageLHS + trueValue
         for dataSource in dataSources:
@@ -150,16 +150,17 @@ if __name__ == '__main__':
                     Ubd <- if ("error" %in% class(fitGPD)) NA else{{
                         h <- function(xi, beta) pGPD(b -u,xi,beta) - pGPD(a -u,xi,beta)
                         hGrad <- function(xi,beta) gradientpGPD(b-u,xi,beta) - gradientpGPD(a-u,xi,beta)
-                        asymptoticCIforGPDfit_m(fitGPD,h,hGrad,verbose = FALSE)
+                        asymptoticCIforGPDfit_m(fitGPD, h, hGrad, verbose = FALSE)
                     }}
                     Ubd 
                     '''.format(leftEndPointObjective, 
                                rightEndPointObjective, 
                                ', '.join([str(eachData)for eachData in inputData.tolist()]))
-                    result.append([dataSource, metaDataDict['dataSize'], percentageLHS, ro.r(POTUtilityinR+POTApply)[0][0], trueValue, nnrep])
+                    roResult = ro.r(POTUtilityinR+POTApply)[0]
+                    result.append([dataSource, metaDataDict['dataSize'], percentageLHS, roResult[0], roResult[1], trueValue, nnrep])
                 except:
                     result.append([dataSource, metaDataDict['dataSize'], 
-                                   percentageLHS, 
+                                   percentageLHS, 0, 
                                    0, 
                                    trueValue, nnrep])
 

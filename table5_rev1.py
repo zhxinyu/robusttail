@@ -159,8 +159,8 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
   ## use either NLOPT_LD_SLSQP, LD_MMA
   local_opts1 <- list(   "algorithm"  = "NLOPT_LD_MMA",
                         "xtol_rel"   = 0,
-                        "xtol_abs"   = 1e-8,
-                        "maxeval"    = 0,
+                        "xtol_abs"   = 1e-6,
+                        "maxeval"    = 10000,
                         "check_derivatives" = FALSE,
                         "check_derivatives_print" = "errors",                        
                         "check_derivatives_tol" = 1e-04)
@@ -178,8 +178,8 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
   ## NLOPT_LD_SLSQP, LD_MMA
   local_opts2 <- list(   "algorithm"  = "NLOPT_LD_MMA",
                         "xtol_rel"   = 0,
-                        "xtol_abs"   = 1e-8,
-                        "maxeval"    = 0,
+                        "xtol_abs"   = 1e-6,
+                        "maxeval"    = 10000,
                         "check_derivatives" = FALSE,
                         "check_derivatives_print" = "errors",
                         "check_derivatives_tol" = 1e-4)
@@ -212,66 +212,73 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
     '''
 
 if __name__ == '__main__':
-	randomSeed = 20220222
-	stringToDataModule = {"gamma": gamma,
+    randomSeed = 20220222
+    stringToDataModule = {"gamma": gamma,
 						"lognorm": lognorm,
 						"pareto": pareto}
+    trueValue = 0.005
+    percentageLHSs = np.linspace(0.9, 0.99, 10).tolist()
 
-	trueValue = 0.005
-	percentageLHSs = np.linspace(0.9, 0.99, 10).tolist()
+    metaDataDict = {"dataSize": 500}
+    dataSources = ['gamma','lognorm','pareto']
+    nrep = 200
+    result = []
+    columns = ["Data Source", 'nData',"percentageLHS", "Lower Bound","Upper Bound", "True Value", "Repetition Index"]
+    for percentageLHS in percentageLHSs:
+        # if percentageLHS != 0.98:
+        #     continue
+        percentageRHS = percentageLHS + trueValue
+        for dataSource in dataSources:
+            # if dataSource!= "pareto":
+            #     continue
+            dataModule = stringToDataModule[dataSource]
+            leftEndPointObjective = dpu.endPointGeneration(
+                dataModule, percentageLHS, dpu.dataModuleToDefaultParamDict[dataModule])
+            rightEndPointObjective = dpu.endPointGeneration(
+                dataModule, percentageRHS, dpu.dataModuleToDefaultParamDict[dataModule])
+            for nnrep in range(nrep):
+                # if nnrep!= 85:
+                #     continue
+                print(f"Working on {percentageLHS}_{dataSource}_{nnrep}")
+                try:
+                    metaDataDict['random_state'] = randomSeed+nnrep
+                    inputData = dpu.RawDataGeneration(dataModule, 
+                                                    dpu.dataModuleToDefaultParamDict[dataModule], 
+                                                    metaDataDict['dataSize'], 
+                                                    metaDataDict['random_state'])
+                    POTApply = '''
+                    lhs <- {:}
 
-	metaDataDict = {"dataSize": 500}
-	dataSources = ['gamma','lognorm','pareto']
-	nrep = 200
-	result = []
-	columns = ["Data Source", 'nData',"percentageLHS", "Lower Bound","Upper Bound", "True Value", "Repetition Index"]
-	for percentageLHS in percentageLHSs:
-		percentageRHS = percentageLHS + trueValue
-		for dataSource in dataSources:
-			dataModule = stringToDataModule[dataSource]
-			leftEndPointObjective = dpu.endPointGeneration(
-				dataModule, percentageLHS, dpu.dataModuleToDefaultParamDict[dataModule])
-			rightEndPointObjective = dpu.endPointGeneration(
-				dataModule, percentageRHS, dpu.dataModuleToDefaultParamDict[dataModule])
-			for nnrep in range(nrep):
-				try:
-					metaDataDict['random_state'] = randomSeed+nnrep
-					inputData = dpu.RawDataGeneration(dataModule, 
-													dpu.dataModuleToDefaultParamDict[dataModule], 
-													metaDataDict['dataSize'], 
-													metaDataDict['random_state'])
-					POTApply = '''
-					lhs <- {:}
+                    rhs <- {:}
 
-					rhs <- {:}
+                    data <- c({:})
 
-					data <- c({:})
+                    out <- tryCatch(
+                    gpdTIP(data, lhs, rhs, conf=0.95), 
+                    error = function(e) e
+                    )
 
-					out <- tryCatch(
-					gpdTIP(data, lhs, rhs, conf=0.95), 
-					error = function(e) e
-					)
+                    bbd <- if ("error" %in% class(out)) NA else{{
+                        out$CI
+                    }}
+                    bbd 
+                    '''.format(leftEndPointObjective, 
+                            rightEndPointObjective, 
+                            ', '.join([str(eachData)for eachData in inputData.tolist()]))
+                    roResult = ro.r(POTUtilityinR+POTApply)
+                    result.append([dataSource, metaDataDict['dataSize'], percentageLHS, roResult[0], roResult[1], trueValue, nnrep])
+                    print(result[-1])
+                except Exception as e: 
+                    print(e)
+                    result.append([dataSource, metaDataDict['dataSize'], 
+                                percentageLHS, 0, 
+                                0, 
+                                trueValue, nnrep])
+            # assert False
+            print(f"Finish experiments on {percentageLHS}-{dataSource}")
+            df = pd.DataFrame(data = result, columns = columns)
+            df.to_csv(os.path.join('large', f'up_to_table5_{percentageLHS}_{dataSource}.csv'), header=columns, index = False)
+    df = pd.DataFrame(data = result, columns = columns)
 
-					bbd <- if ("error" %in% class(out)) NA else{{
-						out$CI
-					}}
-					bbd 
-					'''.format(leftEndPointObjective, 
-							rightEndPointObjective, 
-							', '.join([str(eachData)for eachData in inputData.tolist()]))
-					roResult = ro.r(POTUtilityinR+POTApply)
-					result.append([dataSource, metaDataDict['dataSize'], percentageLHS, roResult[0], roResult[1], trueValue, nnrep])
-					print(result[-1])
-				except Exception as e: 
-					print(e)
-					result.append([dataSource, metaDataDict['dataSize'], 
-								percentageLHS, 0, 
-								0, 
-								trueValue, nnrep])
-			
-			print(f"Finish experiments on {percentageLHS}-{dataSource}")
-   
-	df = pd.DataFrame(data = result, columns = columns)
-
-	FILE_DIR = "large"
-	df.to_csv(os.path.join(FILE_DIR, 'tableFive_rev1.csv'), header=columns, index = False)
+    FILE_DIR = "large"
+    df.to_csv(os.path.join(FILE_DIR, 'tableFive_rev1.csv'), header=columns, index = False)

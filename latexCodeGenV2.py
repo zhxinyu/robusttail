@@ -413,6 +413,28 @@ def tableFive(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
     return ("\\hline \n".join(contents), trueValues[0])
 
 
+def tableFive_w_std(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy, 
+                    dataSources: list, nDatas: list, percentageLHSs: list,
+                    targetColumns: list):
+    trueValues = []
+    contents = []
+    for dataSource in dataSources:
+        RelativeRatios = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        CoverageProbabilities = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        EstimatedUpperBounds = [[ 0 for _ in range(len(nDatas))] for _ in range(len(percentageLHSs))]
+        
+        for i, percentageLHS in enumerate(percentageLHSs):
+            for j, nData in enumerate(nDatas):
+                currKeyChoice = (dataSource, nData, round(percentageLHS, 2))
+                trueValues.append(groupby_object1.get_group(currKeyChoice)['True Value'].unique()[0])
+                EstimatedUpperBounds[i][j]= groupby_object1.get_group(currKeyChoice)[targetColumns].mean().tolist()
+                RelativeRatios[i][j] = (groupby_object1.get_group(currKeyChoice)[targetColumns].mean().values/trueValues[-1]).tolist()
+                CoverageProbabilities[i][j]=(groupby_object1.get_group(currKeyChoice)[targetColumns].values>trueValues[-1]).mean(axis=0).tolist()
+        contents.append(tableFiveUnit(percentageLHSs, dataSource, EstimatedUpperBounds, RelativeRatios, CoverageProbabilities))
+    ## trueValue should be same among different percentageLHS.         
+    assert np.unique(trueValues).size == 1         
+    return ("\\hline \n".join(contents), trueValues[0])
+
 def getTableFive(go1:pd.core.groupby.generic.DataFrameGroupBy, 
                  dataSources: list, nDatas: list, percentageLHSs: list, targetColumns: list,
                  title:str, label: str, scalebox: float):

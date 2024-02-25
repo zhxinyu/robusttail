@@ -1,0 +1,19 @@
+\begin{table}[ht]
+    \centering\scalebox{0.8}{\begin{tabular}{cc|ccc}
+    \toprule
+    \hline
+    Data Source & LHS Quantitle & Relative Error & Upper Bound & Coverage Probability \\\hline
+\multirow{3}{*}{Gamma}&$0.900$ & $1.112$ & $5.56\times 10^{-3}$ & $0.9$\\
+&$0.950$ & $1.269$ & $6.35\times 10^{-3}$ & $ 1$\\
+&$0.990$ & $1.417$ & $7.09\times 10^{-3}$ & $0.9$\\\hline 
+\multirow{3}{*}{Lognorm}&$0.900$ & $1.213$ & $6.07\times 10^{-3}$ & $0.9$\\
+&$0.950$ & $1.256$ & $6.28\times 10^{-3}$ & $ 1$\\
+&$0.990$ & $1.334$ & $6.67\times 10^{-3}$ & $0.9$\\\hline 
+\multirow{3}{*}{Pareto}&$0.900$ & $1.083$ & $5.42\times 10^{-3}$ & $0.7$\\
+&$0.950$ & $1.192$ & $5.96\times 10^{-3}$ & $0.9$\\
+&$0.990$ & $1.260$ & $6.30\times 10^{-3}$ & $0.9$\\
+    \hline
+    \bottomrule
+    \end{tabular}}\caption{Tail probability estimation under different objective functions with Bayesian method.The true value is 0.005.}
+    \label{tb5_tpe_bayesian}
+\end{table}

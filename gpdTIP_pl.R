@@ -31,6 +31,7 @@ gof_find_threshold <- function(data, bootstrap=FALSE) {
   }
   return(valid_threshold[which.max(pvalues)])
 }
+
 gpd_neg_loglikelihood <- function(x, data, u) {
   scale <- x[1]
   shape <- x[2]

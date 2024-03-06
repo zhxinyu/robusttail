@@ -1,11 +1,16 @@
-## Use profile likelihood to estimate CI.
+## Use Bayesian method to estimate CI.
 import dataPreparationUtils as dpu
 from scipy.stats import gamma, lognorm, pareto
-from rpy2.robjects.packages import importr
+import os
+try:
+	from rpy2.robjects.packages import importr
+except:
+    os.environ['R_HOME'] = os.path.join(os.environ['CONDA_PREFIX'], 'lib', 'R')
+    from rpy2.robjects.packages import importr
+    
 import rpy2.robjects as ro
 import pandas as pd
 import numpy as np
-import os
 from rpy2.robjects import numpy2ri
 numpy2ri.activate()
 
@@ -14,14 +19,17 @@ utils = importr('utils')
 try:
 	importr('POT')
 	importr('nloptr')    
-	importr('MASS')    
+	importr('MASS')
+	importr('eva')
 except:
 	utils.install_packages('POT', contribulr="https://cran.microsoft.com/")
 	utils.install_packages('nloptr', contribulr="https://cran.microsoft.com/")
 	utils.install_packages('MASS', contribulr="https://cran.microsoft.com/")
+	utils.install_packages('eva', contribulr="https://cran.microsoft.com/")
 	importr('POT')
 	importr('nloptr')    
 	importr('MASS')    
+	importr('eva')
  
 
 POTUtilityinR='''
@@ -185,7 +193,7 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
 
 if __name__ == '__main__':
     import argparse  
-    FILE_DIR = "large"
+    FILE_DIR = "large_bayesian"
     
     parser = argparse.ArgumentParser(description='TIP estimation using MCMC.')
     parser.add_argument('lhs_st', type=float, help='start of LHS list in the objective function')
@@ -194,8 +202,8 @@ if __name__ == '__main__':
     
     randomSeed = 20220222
     stringToDataModule = {"gamma": gamma,
-						"lognorm": lognorm,
-						"pareto": pareto}
+						  "lognorm": lognorm,
+						  "pareto": pareto}
     trueValue = 0.005
     # percentageLHSs = np.linspace(0.9, 0.99, 10).tolist()
     # dataSources = ['gamma','lognorm','pareto']
@@ -221,9 +229,9 @@ if __name__ == '__main__':
                 try:
                     metaDataDict['random_state'] = randomSeed+nnrep
                     inputData = dpu.RawDataGeneration(dataModule, 
-                                                    dpu.dataModuleToDefaultParamDict[dataModule], 
-                                                    metaDataDict['dataSize'], 
-                                                    metaDataDict['random_state'])
+                                                      dpu.dataModuleToDefaultParamDict[dataModule], 
+                                                      metaDataDict['dataSize'], 
+                                                      metaDataDict['random_state'])
                     POTApply = '''
 lhs <- {:}
 
@@ -257,7 +265,7 @@ bbd
                                 trueValue, nnrep])
             print(f"Finish experiments on {percentageLHS}-{dataSource}")
             df = pd.DataFrame(data = result, columns = columns)
-            df.to_csv(os.path.join(FILE_DIR, f'up_to_table5_{percentageLHS}_{dataSource}.csv'), header=columns, index = False)
+            df.to_csv(os.path.join(FILE_DIR, f'table5_{percentageLHS}_{dataSource}.csv'), header=columns, index = False)
     df = pd.DataFrame(data = result, columns = columns)
 
-    df.to_csv(os.path.join(FILE_DIR, f'tableFive_bayesian_{args.lhs_st}_{args.ds}.csv'), header=columns, index = False)
+    # df.to_csv(os.path.join(FILE_DIR, f'tableFive_bayesian_{args.lhs_st}_{args.ds}.csv'), header=columns, index = False)

@@ -34,9 +34,10 @@ with open('gpdTIP_pwm.R','r') as f:
 
 if __name__ == '__main__':
     import argparse  
-    FILE_DIR = f'large_{__file__}'
-    if not os.path.exists(FILE_DIR):
-        os.makedirs(FILE_DIR)
+    file_dir = f'large_{os.path.basename(__file__).replace('.py', '')}'
+    print(file_dir)
+    if not os.path.exists(file_dir):
+        os.makedirs(file_dir)
         
     parser = argparse.ArgumentParser(description='TIP estimation using probability weighted moment method.')
     parser.add_argument('lhs_st', type=float, help='start of LHS list in the objective function')
@@ -110,7 +111,7 @@ bbd
                                 trueValue, nnrep])
             print(f"Finish experiments on {percentageLHS}-{dataSource}")
             df = pd.DataFrame(data = result, columns = columns)
-            df.to_csv(os.path.join(FILE_DIR, f'table5_{percentageLHS}_{dataSource}.csv'), header=columns, index = False)
+            df.to_csv(os.path.join(file_dir, f'table5_{percentageLHS}_{dataSource}.csv'), header=columns, index = False)
     # df = pd.DataFrame(data = result, columns = columns)
 
-    # df.to_csv(os.path.join(FILE_DIR, f'tableFive_bayesian_{args.lhs_st}_{args.ds}.csv'), header=columns, index = False)
+    # df.to_csv(os.path.join(file_dir, f'tableFive_bayesian_{args.lhs_st}_{args.ds}.csv'), header=columns, index = False)

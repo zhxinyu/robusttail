@@ -277,7 +277,6 @@ if __name__ == '__main__':
             # assert False
             print(f"Finish experiments on {percentageLHS}-{dataSource}")
             df = pd.DataFrame(data = result, columns = columns)
-            df.to_csv(os.path.join('large', f'up_to_table5_{percentageLHS}_{dataSource}.csv'), header=columns, index = False)
     df = pd.DataFrame(data = result, columns = columns)
 
     FILE_DIR = "large"

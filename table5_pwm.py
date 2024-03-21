@@ -1,32 +1,5 @@
 ## Use Bayesian method to estimate CI.
-import dataPreparationUtils as dpu
-from scipy.stats import gamma, lognorm, pareto
-import os
-try:
-	from rpy2.robjects.packages import importr
-except:
-    os.environ['R_HOME'] = os.path.join(os.environ['CONDA_PREFIX'], 'lib', 'R')
-    from rpy2.robjects.packages import importr
-    
-import rpy2.robjects as ro
-import pandas as pd
-import numpy as np
-from rpy2.robjects import numpy2ri
-numpy2ri.activate()
-
-importr('base')
-utils = importr('utils')
-try:
-	importr('POT')
-	importr('MASS')
-	importr('eva')
-except:
-	utils.install_packages('POT', contribulr="https://cran.microsoft.com/")
-	utils.install_packages('MASS', contribulr="https://cran.microsoft.com/")
-	utils.install_packages('eva', contribulr="https://cran.microsoft.com/")
-	importr('POT')
-	importr('MASS')    
-	importr('eva')
+from table5_central_import import *
  
 with open('gpdTIP_pwm.R','r') as f:
     POTUtilityinR = f.read()
@@ -35,7 +8,6 @@ with open('gpdTIP_pwm.R','r') as f:
 if __name__ == '__main__':
     import argparse  
     file_dir = f'large_{os.path.basename(__file__).replace('.py', '')}'
-    print(file_dir)
     if not os.path.exists(file_dir):
         os.makedirs(file_dir)
         

@@ -1,0 +1,19 @@
+\begin{table}[ht]
+    \centering\scalebox{0.8}{\begin{tabular}{cc|ccc}
+    \toprule
+    \hline
+    Data Source & LHS Quantitle & Relative Error & Upper Bound & Coverage Probability \\\hline
+\multirow{3}{*}{Gamma}&$0.900$ & $0.954$ & $4.77\times 10^{-3}$ & $0.72$\\
+&$0.950$ & $1.196$ & $5.98\times 10^{-3}$ & $0.92$\\
+&$0.990$ & $1.854$ & $9.27\times 10^{-3}$ & $0.98$\\\hline 
+\multirow{3}{*}{Lognorm}&$0.900$ & $1.023$ & $5.12\times 10^{-3}$ & $0.785$\\
+&$0.950$ & $1.281$ & $6.41\times 10^{-3}$ & $0.97$\\
+&$0.990$ & $1.882$ & $9.41\times 10^{-3}$ & $ 1$\\\hline 
+\multirow{3}{*}{Pareto}&$0.900$ & $1.082$ & $5.41\times 10^{-3}$ & $0.855$\\
+&$0.950$ & $1.261$ & $6.30\times 10^{-3}$ & $0.99$\\
+&$0.990$ & $1.754$ & $8.77\times 10^{-3}$ & $0.985$\\
+    \hline
+    \bottomrule
+    \end{tabular}}\caption{Tail probability estimation using Peak-Over-Threshold.The true value is 0.005.}
+    \label{tb5_tpe_pot}
+\end{table}

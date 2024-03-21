@@ -1,36 +1,6 @@
 rm(list=ls())
-gof_find_threshold <- function(data, bootstrap=FALSE) {
-  data <- as.numeric(data)
-  if (bootstrap) {
-    probs <- seq(0.6, 0.9, length.out = 10)
-  } else {
-    probs <- seq(0.6, 0.9, length.out = 100)
 
-  }
-  thresholds <- as.numeric(quantile(data, probs = probs))
-  pvalues <- c()
-  valid_threshold <- c()
-  for (threshold_idx in seq_along(thresholds)) {
-    tryCatch({
-      if (bootstrap) {
-        test_result <- eva::gpdSeqTests(data=data,
-                                        thresholds=thresholds[threshold_idx],
-                                        method="ad",
-                                        nsim=100)
-      } else {
-        test_result <- eva::gpdSeqTests(data=data,
-                                        thresholds=thresholds[threshold_idx],
-                                        method="ad")
-
-      }
-      pvalues <- append(pvalues, test_result$p.values)
-      valid_threshold <- append(valid_threshold, thresholds[threshold_idx])
-    }, error = function(e) {
-      # print(e)
-    })
-  }
-  return(valid_threshold[which.max(pvalues)])
-}
+source("common_utils.R")
 
 gpd_neg_loglikelihood <- function(x, data, u) {
   scale <- x[1]
@@ -158,28 +128,28 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
   local_opts2 <- list(   "algorithm"  = "NLOPT_LD_MMA",
                         "xtol_rel"   = 0,
                         "xtol_abs"   = 1e-8,
-                        "maxeval"    = 0,
+                        "maxeval"    = 5000,
                         "check_derivatives" = FALSE,
                         "check_derivatives_print" = "errors",
                         "check_derivatives_tol" = 1e-4)
   direction <- 1
   opt_res <- nloptr::nloptr(x0=x0,
-                        eval_f=eval_tip_f,
-                        lb=c(0, -Inf),
-                        ub=c(Inf, Inf),
-                        eval_g_ineq=eval_tip_g_ineq,
-                        opts=local_opts2,
-                        data=data, u=u, direction=direction, lhs=lhs, rhs=rhs, llmax=llmax, cutoff=cutoff)
+                            eval_f=eval_tip_f,
+                            lb=c(0, -Inf),
+                            ub=c(Inf, Inf),
+                            eval_g_ineq=eval_tip_g_ineq,
+                            opts=local_opts2,
+                            data=data, u=u, direction=direction, lhs=lhs, rhs=rhs, llmax=llmax, cutoff=cutoff)
   local_min_val <- direction*opt_res$objective*base_probability
 
   direction <- -1
   opt_res <- nloptr::nloptr(x0=x0,
-                        eval_f=eval_tip_f,
-                        lb=c(0, -Inf),
-                        ub=c(Inf, Inf),
-                        eval_g_ineq=eval_tip_g_ineq,
-                        opts=local_opts2,
-                        data=data, u=u, direction=direction, lhs=lhs, rhs=rhs, llmax=llmax, cutoff=cutoff)
+                            eval_f=eval_tip_f,
+                            lb=c(0, -Inf),
+                            ub=c(Inf, Inf),
+                            eval_g_ineq=eval_tip_g_ineq,
+                            opts=local_opts2,
+                            data=data, u=u, direction=direction, lhs=lhs, rhs=rhs, llmax=llmax, cutoff=cutoff)
   local_max_val <- direction*opt_res$objective*base_probability  
    
   CI <- c(local_min_val, local_max_val)
@@ -188,33 +158,44 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
   out
 }
 
-success_cnt <- 0
-scale_true <- 1
-shape_true <- 1.5
-nsample <- 500
-num_rep <- 100
-lhs <- POT::qgpd(p=0.99, loc = 0, scale = scale_true, shape = shape_true)
-rhs <- POT::qgpd(p=0.995, loc = 0, scale = scale_true, shape = shape_true)
-tail_prob_true <- POT::pgpd(q=rhs, loc = 0, scale = scale_true, shape = shape_true) -
-                  POT::pgpd(q=lhs, loc = 0, scale = scale_true, shape = shape_true)
-conf <- 0.95
-set.seed(4)
-for (index in 1:num_rep) {
-  data <- POT::rgpd(nsample, loc = 0, scale = scale_true, shape = shape_true) 
-  out <- gpdTIP(data, lhs, rhs, conf)
-  writeLines(sprintf("True value is %f", tail_prob_true))
-  writeLines(sprintf("95%% confidence interval is [%f, %f]", out$CI[1], out$CI[2]))
-  if (out$CI[1] < tail_prob_true && out$CI[2] > tail_prob_true) {
-    success_cnt <- success_cnt + 1 
-  }  
+test <- function() {
+  success_cnt <- 0
+  scale_true <- 1
+  shape_true <- 1.5
+  nsample <- 500
+  num_rep <- 100
+  lhs <- POT::qgpd(p=0.99, loc = 0, scale = scale_true, shape = shape_true)
+  rhs <- POT::qgpd(p=0.995, loc = 0, scale = scale_true, shape = shape_true)
+  tail_prob_true <- POT::pgpd(q=rhs, loc = 0, scale = scale_true, shape = shape_true) -
+                    POT::pgpd(q=lhs, loc = 0, scale = scale_true, shape = shape_true)
+  conf <- 0.95
+  set.seed(4)
+  for (index in 1:num_rep) {
+    data <- POT::rgpd(nsample, loc = 0, scale = scale_true, shape = shape_true) 
+    out <- gpdTIP(data, lhs, rhs, conf)
+    writeLines(sprintf("True value is %f", tail_prob_true))
+    writeLines(sprintf("95%% confidence interval is [%f, %f]", out$CI[1], out$CI[2]))
+    if (out$CI[1] < tail_prob_true && out$CI[2] > tail_prob_true) {
+      success_cnt <- success_cnt + 1 
+    }  
+  }
+
+  writeLines(sprintf("coverage probability: %f", success_cnt/num_rep))
+
 }
-
-writeLines(sprintf("coverage probability: %f", success_cnt/num_rep))
-
-
 
 # helper function: check.derivatives(...), nl.grad
 # nl.opts(...): stopval, xtol_rel, maxeval, ftol_rel, ftol_abs, check_derivatives = FALSE
 # f(x) = POT::pgpd(rhs, loc = u, scale = x1, shape = x2) - POT::pgpd(lhs, loc = u, scale = x1, shape = x2)
 #
 
+
+                    
+# lhs <- 3.3174483005106072
+
+# rhs <- 3.9397192883112084
+
+# data <-  c(t(read.csv("./large_data/gamma/default/randomseed=20220280.csv", header=FALSE)))
+
+# out <- gpdTIP(data, lhs, rhs, conf=0.95)
+# print(out)

@@ -1,62 +1,6 @@
 rm(list=ls())
 
-gof_find_threshold <- function(data, bootstrap=FALSE) {
-
-  data <- as.numeric(data)
-  if (bootstrap) {
-    probs <- seq(0.6, 0.9, length.out = 10)
-  } else {
-    probs <- seq(0.6, 0.9, length.out = 100)
-  }
-
-    thresholds <- as.numeric(quantile(data, probs = probs))
-    pvalues <- c()
-    valid_threshold <- c()
-    for (threshold_idx in seq_along(thresholds)) {
-        tryCatch({
-            if (bootstrap) {
-            test_result <- eva::gpdSeqTests(data=data,
-                                            thresholds=thresholds[threshold_idx],
-                                            method="ad",
-                                            nsim=100)
-            } else {
-            test_result <- eva::gpdSeqTests(data=data,
-                                            thresholds=thresholds[threshold_idx],
-                                            method="ad")
-
-            }
-            pvalues <- append(pvalues, test_result$p.values)
-            valid_threshold <- append(valid_threshold, thresholds[threshold_idx])
-        }, error = function(e) {
-            # print(e)
-        })
-    }
-    return(valid_threshold[which.max(pvalues)])
-
-}
-
-gradientpgpd <- function(x, shape, scale, eps=1e-12){
-
-	gradient <- matrix(0, ncol = length(x),nrow = 2, dimnames = list(c("shape","scale")))
-
-	# Check with eps rather than 0 for numerical stability
-	if (abs(shape)>= eps){
-
-		supp <- 0 < (1+shape*x/scale)
-		xs <- x[supp]
-
-		gradient[1,supp] <- (-1/shape^2*log(1+shape*xs/scale) + xs/(shape*(scale + shape*xs)))*(1-POT::pgpd(xs,shape=shape,scale=scale))
-		gradient[2,] <- -x/scale*POT::dgpd(x, shape=shape,scale=scale) # Partial scale
-	}
-
-	# In this case, the GPD fit is numerically an exponential distribution
-	if (abs(shape) < eps){
-		gradient[1,] <- 0
-		gradient[2,] <- x/scale*dexp(x,1/scale)
-	}
-
-	return(gradient)
-}
+source("common_utils.R")
 
 asymptoticCIforGPD_delta <- function(fitGPD, h, hGrad, alpha=0.05, verbose = TRUE){
 	# Delta method

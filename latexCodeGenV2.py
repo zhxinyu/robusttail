@@ -438,7 +438,7 @@ def tableFive_w_std(groupby_object1:pd.core.groupby.generic.DataFrameGroupBy,
 def getTableFive(go1:pd.core.groupby.generic.DataFrameGroupBy, 
                  dataSources: list, nDatas: list, percentageLHSs: list, targetColumns: list,
                  title:str, label: str, scalebox: float):
-    content, trueValue = tableFive(go1, dataSources, nDatas, percentageLHSs, targetColumns)
+    content, trueValue = tableFive_w_std(go1, dataSources, nDatas, percentageLHSs, targetColumns)
     latexTable= r'''
 \begin{table}[ht]
     \centering'''+\

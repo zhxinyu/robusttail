@@ -89,16 +89,19 @@ eval_tip_g_ineq <- function(x, data, u, direction, lhs, rhs, llmax, cutoff) {
     grad   <- rbind(grad1, cbind(grad2_scale, grad2_shape))
     return( list( "constraints"=constr, "jacobian"=grad ) )
 }
-gpdTIP <- function(data, lhs, rhs, conf = .95) {
+gpdTIP <- function(data, lhs, rhs, conf = .95, u=NULL) {
 
   if(lhs >= rhs) {
     stop("Left end point must be smaller than right end point!")
   }
 
-  u <- gof_find_threshold(data)
   if (is.null(u)) {
-    u <- gof_find_threshold(data, bootstrap=TRUE)
+    u <- gof_find_threshold(data)
+    if (is.null(u)) {
+      u <- gof_find_threshold(data, bootstrap=TRUE)
+    }
   }
+
   base_probability <- sum(data>u)/length(data) 
   # Find initial point for the following non-linear optimization problem
   suppressWarnings(z <- POT::fitgpd(data, threshold = u, est = 'mle'))
@@ -109,7 +112,7 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
   local_opts1 <- list(   "algorithm"  = "NLOPT_LD_MMA",
                         "xtol_rel"   = 0,
                         "xtol_abs"   = 1e-8,
-                        "maxeval"    = 0,
+                         "maxeval"    = 1000,
                         "check_derivatives" = FALSE,
                         "check_derivatives_print" = "errors",                        
                         "check_derivatives_tol" = 1e-04)
@@ -128,7 +131,7 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
   local_opts2 <- list(   "algorithm"  = "NLOPT_LD_MMA",
                         "xtol_rel"   = 0,
                         "xtol_abs"   = 1e-8,
-                        "maxeval"    = 5000,
+                        "maxeval"    = 1000,
                         "check_derivatives" = FALSE,
                         "check_derivatives_print" = "errors",
                         "check_derivatives_tol" = 1e-4)

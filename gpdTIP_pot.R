@@ -24,13 +24,15 @@ MEplotFindThresh <- function (data) {
 	return(list("thresh"=u, "perc.thresh"=q_u))
 }
 
-gpdTIP <- function(data, lhs, rhs, conf = .95) {
+gpdTIP <- function(data, lhs, rhs, conf=.95, u=NULL) {
 
 	if(lhs >= rhs) {
 		stop("Left end point must be smaller than right end point!")
 	}
 
-	u <- MEplotFindThresh(data)$thresh
+  	if (is.null(u)) {
+		u <- MEplotFindThresh(data)$thresh
+	}
 
 	fitGPD <- tryCatch(
 		QRM::fit.GPD(data,
@@ -49,21 +51,3 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
 
 	return(list(CI=Ubd))
 }
-
-
-# lhs <- 3.3174483005106072
-
-# rhs <- 3.9397192883112084
-
-# data <-  c(t(read.csv("./large_data/gamma/default/randomseed=20220222.csv", header=FALSE)))
-
-# out <- gpdTIP(data, lhs, rhs, conf=0.95)
-# print(out)
-# if ("error" %in% class(out)) {
-#   print(out)
-# }
-
-# bbd <- if ("error" %in% class(out)) NA else{
-# 	out$CI
-# }
-# bbd 

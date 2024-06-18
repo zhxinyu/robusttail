@@ -19,7 +19,7 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
 		             type = "ml"), 
 		error = function(e) e 
 		)
-
+	## beta is scale, xi is -shape
 	Ubd <- if ("error" %in% class(fitGPD)) {
 		NA
 	} else{

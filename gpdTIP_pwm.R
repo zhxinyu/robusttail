@@ -30,16 +30,18 @@ asymptoticCIforGPD_delta <- function(fitGPD, h, hGrad, alpha=0.05, verbose = TRU
 	return(output)
 }
 
-gpdTIP <- function(data, lhs, rhs, conf = .95) {
+gpdTIP <- function(data, lhs, rhs, conf = .95, u=NULL) {
 
 	if(lhs >= rhs) {
 		stop("Left end point must be smaller than right end point!")
 	}
 
-	u <- gof_find_threshold(data)
 	if (is.null(u)) {
-		u <- gof_find_threshold(data, bootstrap=TRUE)
-	}
+        u <- gof_find_threshold(data)
+        if (is.null(u)) {
+            u <- gof_find_threshold(data, bootstrap=TRUE)
+        }
+    }
     
 	prob_over_threshold <- sum(data>u)/length(data)
     data <- sort(data[data>u]-u)
@@ -85,7 +87,7 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
                    shape_pwm=shape_pwm, scale_pwm=scale_pwm, Sigma_pwm=Sigma_pwm,
                    prob_over_threshold=prob_over_threshold, nexc=n)
     h <- function(shape, scale) POT::pgpd(q=rhs-u, scale=scale, shape=shape) - POT::pgpd(q=lhs-u,scale=scale, shape=shape)
-    hGrad <- function(shape, scale) gradientpgpd(x=rhs-u, shape=shape, scale=scale) - gradientpgpd(x=lhs-u, shape=shape, scale=scale)
+    hGrad <- function(shape, scale) gradientpGPD(x=rhs-u, xi=shape, beta=scale) - gradientpGPD(x=lhs-u, xi=shape, beta=scale)
 	
 	Ubd <- asymptoticCIforGPD_delta(fitGPD, h, hGrad, verbose = FALSE)
 

@@ -83,7 +83,8 @@ sampleProposal <- function(x0, prior_scale, prior_shape, u) {
 
 estimateTIPviaMCMC <- function(x0, prior_scale, prior_shape, 
                                data, u, lhs, rhs, conf) {
-  burnIn <- 20000
+  # burnIn <- 20000
+  burnIn <- 1000
   for ( i in 1:burnIn ){
     x0 <- sampleProposal(x0, prior_scale, prior_shape, u)
   }
@@ -135,16 +136,19 @@ estimateTIPviaMCMC <- function(x0, prior_scale, prior_shape,
 #   return(quantile(tip, probs = c(0, conf)))
 # }
 
-gpdTIP <- function(data, lhs, rhs, conf = .95) {
+gpdTIP <- function(data, lhs, rhs, conf = .95, u = NULL) {
 
   if(lhs >= rhs) {
     stop("Left end point must be smaller than right end point!")
   }
 
-  u <- gof_find_threshold(data)
   if (is.null(u)) {
-    u <- gof_find_threshold(data, bootstrap=TRUE)
+    u <- gof_find_threshold(data)
+    if (is.null(u)) {
+      u <- gof_find_threshold(data, bootstrap=TRUE)
+    }    
   }
+
   base_probability <- sum(data>u)/length(data) 
   # Find initial point for the following MCMC method to estimate credible interval for TIP.
   suppressWarnings(z <- POT::fitgpd(data, threshold = u, est = 'mle'))

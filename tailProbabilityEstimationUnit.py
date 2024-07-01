@@ -2,7 +2,7 @@ import dataPreparationUtils as dpu
 import optimizationUnit as ou
 import typing
 from scipy.stats import gamma, lognorm, pareto, genpareto
-
+import numpy as np 
 
 def tailProbabilityEstimationWithRectangularConstraintPerRep(dataModule,
                                                              percentageLHS: float, percentageRHS: float,
@@ -96,6 +96,58 @@ def tailProbabilityEstimationPerRep(dataModule,
                                                                  random_state))
     return outputPerRep
 
+def tailProbabilityEstimationWithRealData(inputData: np.ndarray, 
+                                          leftEndPointObjective: float, rightEndPointObjective: float,
+                                          thresholdPercentage: typing.Union[float, typing.List[float]],
+                                          gEllipsoidalDimension: int,
+                                          alpha: float,
+                                          random_state: int) -> typing.List[float]:
+    outputPerRep = [0]*6
+    dataSize = len(inputData)
+    outputPerRep[0] = ou.OptimizationWithRectangularConstraint(0,
+                                                               inputData,
+                                                               thresholdPercentage,
+                                                               alpha,
+                                                               leftEndPointObjective, rightEndPointObjective,
+                                                               dataSize, 7*random_state+1)
+    outputPerRep[1] = ou.OptimizationWithRectangularConstraint(1,
+                                                               inputData,
+                                                               thresholdPercentage,
+                                                               alpha,
+                                                               leftEndPointObjective, rightEndPointObjective,
+                                                               dataSize, 7*random_state+1)
+    outputPerRep[2] = ou.OptimizationWithRectangularConstraint(2,
+                                                               inputData,
+                                                               thresholdPercentage,
+                                                               alpha,
+                                                               leftEndPointObjective, rightEndPointObjective,
+                                                               dataSize, 7*random_state+1)
+        
+
+    outputPerRep[3] = ou.OptimizationWithEllipsodialConstraint(0,
+                                                               inputData,
+                                                               thresholdPercentage,
+                                                               alpha,
+                                                               leftEndPointObjective, rightEndPointObjective,
+                                                               gEllipsoidalDimension,
+                                                               dataSize, 7*random_state+1)
+
+    outputPerRep[4] = ou.OptimizationWithEllipsodialConstraint(1,
+                                                               inputData,
+                                                               thresholdPercentage,
+                                                               alpha,
+                                                               leftEndPointObjective, rightEndPointObjective,
+                                                               gEllipsoidalDimension,
+                                                               dataSize, 7*random_state+1)
+
+    outputPerRep[5] = ou.OptimizationWithEllipsodialConstraint(2,
+                                                               inputData,
+                                                               thresholdPercentage,
+                                                               alpha,
+                                                               leftEndPointObjective, rightEndPointObjective,
+                                                               gEllipsoidalDimension,
+                                                               dataSize, 7*random_state+1)
+    return outputPerRep
 
 if __name__ == '__main__':
     dataSize = 500

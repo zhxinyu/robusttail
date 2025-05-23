@@ -1,3 +1,14 @@
+"""
+This module provides classes and functions for polynomial optimization and constraint handling.
+
+The main components are:
+- PolynomialFunction: Represents piecewise polynomial functions
+- optimization: Solves optimization problems with polynomial constraints
+- infinite_constraint: Handles infinite constraints in optimization problems
+
+The module uses MOSEK Fusion for optimization modeling and solving.
+"""
+
 from __future__ import annotations
 from typing import List
 import mosek.fusion as mf
@@ -8,8 +19,10 @@ from scipy.linalg import sqrtm
 import bisect
 import copy
 
-
 class bcolors:
+    """
+    ANSI escape sequences for colored terminal output.
+    """
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKCYAN = '\033[96m'
@@ -20,24 +33,65 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
 class PolynomialFunction:
+    """
+    Represents a piecewise polynomial function.
+
+    This class defines a piecewise polynomial function for x >= input_endpoints[0].
+
+    The piecewise polynomial representation is chosen for its flexibility and efficiency
+    in handling complex functions that may have different behaviors over different intervals.
+    This representation allows for:
+    - Different polynomial expressions for different intervals
+    - Efficient evaluation and manipulation of the function
+
+    Parameters
+    ----------
+    input_endpoints : List[float]
+        List of endpoints [a_0, ..., a_I] where a_I = np.inf.
+        These define the intervals where different polynomial pieces apply.
+    coefficients : List[List[float]]
+        List of coefficient lists for each polynomial piece.
+        Each sublist represents the coefficients of a polynomial in ascending order of degree.
+
+    Attributes
+    ----------
+    _input_endpoints : List[float]
+        Stored input endpoints.
+    _coefficients : List[List[float]]
+        Stored coefficients.
+    _threshold_level : float
+        The first input endpoint (a_0), representing the minimum x value for which the function is defined.
+
+    Notes
+    -----
+    The function is represented as a series of polynomial pieces, each defined on an interval.
+    For the i-th interval [a_i, a_{i+1}), the polynomial is defined by the coefficient list
+    [y0, y1, ..., yk] which represents the polynomial:
+    y0 + y1*x + y2*x^2 + ... + yk*x^k
+
+    This representation allows for efficient evaluation, integration, and manipulation of the function,
+    while also allowing for discontinuities and different behaviors over different intervals.
+
+    Requirements:
+    - len(input_endpoints) - 1 == len(coefficients)
+    - input_endpoints must be sorted in increasing order
+    - The last input endpoint must be np.inf
+
+    Examples
+    --------
+    Indicator functions:
+    - I(x >= a): PolynomialFunction([a, np.inf], [[1]])
+    - I(b <= x <= c): PolynomialFunction([b, c, np.inf], [[1], [0]])
+
+    Power functions:
+    - x * I(x >= a): PolynomialFunction([a, np.inf], [[0, 1]])
+    - x^i * I(x >= a), i >= 0: PolynomialFunction([a, np.inf], [[0, ..., 0, 1]])
+      where the list has i zeros followed by 1.
+
+    """
+
     def __init__(self, input_endpoints: List[float], coefficients: List[List[float]]):
-        '''
-        Polynomial function for x\geq input_endpoints[0]. 
-        
-        input_endpoints -> [a_0,...,a_I] and the last one a_I = np.inf
-        the ith coefficients -> [y0,y1,...,yk] for polynomial_i(x)= y0+y1*x+y2*x^2+...+yk*x^k with a_i<= x \leq a_{i+1}, i = 0, ..., I-1
-        REQUIRE:
-            len(input_endpoints)-1 == len(coefficients)
-            input_endpoints is sorted, in increasing order
-            
-        EXAMPLES:
-            indicator functions: \mathbb{I}(x\geq a)          -> PolynomialFunction([a,np.inf],[[1]])
-                                 \mathbb{I}(b\leq x\leq c)    -> PolynomialFunction([b,c,np.inf],[[1],[0]])
-            power functions:     x\mathbb{I}(x\geq a)         -> PolynomialFunction([a,np.inf],[[0, 1]])
-                                 x^i\mathbb{I}(x\geq a),i>=0  -> PolynomialFunction([a,np.inf],[[0...0 (#i), 1]])
-        '''
         assert len(input_endpoints)-1 == len(coefficients)
         assert input_endpoints[-1] == np.inf
         assert input_endpoints == sorted(input_endpoints)
@@ -47,23 +101,50 @@ class PolynomialFunction:
 
     @property
     def input_endpoints(self):
+        """List[float]: The input endpoints of the piecewise polynomial function."""
         return self._input_endpoints
 
     @property
     def coefficients(self):
+        """List[List[float]]: The coefficients of each polynomial piece."""
         return self._coefficients
 
     @property
     def threshold_level(self):
+        """float: The first input endpoint (a_0)."""
         return self._threshold_level
 
     def multiply(self, multiple: float) -> None:
+        """
+        Multiply the polynomial function by a scalar.
+
+        Parameters
+        ----------
+        multiple : float
+            The scalar to multiply the function by.
+        """
         for coefficient in self.coefficients:
             for i in range(len(coefficient)):
                 coefficient[i] *= multiple
 
     def integration_riser(self, order: int = 1) -> 'PolynomialFunction':
+        """
+        Compute the indefinite integral of the polynomial function.
 
+        Parameters
+        ----------
+        order : int, optional
+            The order of integration. Default is 1.
+
+        Returns
+        -------
+        PolynomialFunction
+            A new PolynomialFunction representing the indefinite integral.
+
+        Notes
+        -----
+        For order > 1, the method recursively applies integration.
+        """
         assert order >= 0
         if order == 0:
             return self
@@ -86,18 +167,55 @@ class PolynomialFunction:
                     np.sum(interval_left**np.arange(1, _k+2)/np.arange(1,
                            _k+2)*np.array(self.coefficients[coefficient_index]))
             riser_coefficients.append(riser_coefficient.tolist())
-#         print(self.input_endpoints[:-1],riser_coefficients)
         return PolynomialFunction(self.input_endpoints, riser_coefficients)
 
     def __eq__(self, other) -> bool:
-        #         print(np.max(np.abs(np.array(self.input_endpoints[:-1])-np.array(other.input_endpoints[:-1]))),
-        #               np.max(np.abs(np.array(self.coefficients)-np.array(other.coefficients)) ))
+        """
+        Check if two PolynomialFunction objects are equal.
+
+        Parameters
+        ----------
+        other : PolynomialFunction
+            The other PolynomialFunction to compare with.
+
+        Returns
+        -------
+        bool
+            True if the functions are equal, False otherwise.
+
+        Notes
+        -----
+        Equality is checked by comparing input endpoints and coefficients
+        with a tolerance of 1e-12 for floating-point comparisons.
+        """
         return np.all(np.abs(np.array(self.input_endpoints[:-1])-np.array(other.input_endpoints[:-1])) < 1e-12) and \
             np.all(np.abs(np.array(self.coefficients) -
                    np.array(other.coefficients)) < 1e-12)
 
-
 def off_diag_auxmat(k: int, sum_index: int) -> List[List[int]]:
+    """
+    Generate an auxiliary matrix with 1's on a specific off-diagonal.
+
+    Parameters
+    ----------
+    k : int
+        Size of the matrix will be (k+1) x (k+1).
+    sum_index : int
+        Index determining which off-diagonal to fill with 1's.
+        Elements (i,j) where i+j=sum_index will be set to 1.
+
+    Returns
+    -------
+    List[List[int]]
+        A (k+1) x (k+1) matrix of 0's and 1's, with 1's on the specified
+        off-diagonal positions where row + column = sum_index.
+
+    Notes
+    -----
+    The matrix is initialized with zeros and then filled with 1's at positions
+    where the sum of row and column indices equals sum_index, as long as those
+    indices are valid (between 0 and k inclusive).
+    """
     auxmat = np.zeros(shape=(k+1, k+1))
     for i in range(k+1):
         if sum_index-i < 0 or sum_index-i > k:
@@ -106,7 +224,39 @@ def off_diag_auxmat(k: int, sum_index: int) -> List[List[int]]:
     return auxmat.tolist()
 
 
-def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[PolynomialFunction], G_Rs: List[PolynomialFunction]) -> None:
+def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[PolynomialFunction], G_Rs: List[PolynomialFunction], right_endpoint: float = np.inf) -> None:
+    """
+    Apply infinite constraints to the optimization model.
+
+    This function handles the application of infinite constraints for polynomial functions
+    in the optimization problem. It processes the objective function H, ellipsoidal
+    constraint functions G_Es, and rectangular constraint functions G_Rs.
+
+    Parameters:
+    -----------
+    M : mf.Model
+        The MOSEK Fusion model to which constraints will be added.
+    H : PolynomialFunction
+        The objective function represented as a PolynomialFunction.
+    G_Es : List[PolynomialFunction]
+        List of ellipsoidal constraint functions.
+    G_Rs : List[PolynomialFunction]
+        List of rectangular constraint functions.
+    right_endpoint : float, optional
+        The right endpoint of the interval. Default is np.inf
+        
+    Returns:
+    --------
+    None
+
+    Notes:
+    ------
+    - The function determines the intervals for constraint application based on the
+      input endpoints of all provided polynomial functions.
+    - It handles both ellipsoidal and rectangular constraints separately.
+    - For each interval, it calculates the coefficients of the polynomial functions
+      and applies the constraints using the infinite_constraint_helper function.
+    """
     input_endpoints = H.input_endpoints[:-1]
     if len(G_Es) == 0:
         G_Es = None
@@ -126,7 +276,9 @@ def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[Polynomia
     assert np.inf not in set(input_endpoints)
     input_endpoints = list(set(input_endpoints))
     input_endpoints.sort()
-    input_endpoints += [np.inf]
+    assert input_endpoints[-1] < right_endpoint, "The right endpoint must be greater than the last input endpoint"
+    input_endpoints += [right_endpoint]
+
     if G_Es:
         constraint_ellipsoid_coefficient = mf.Expr.mul(
             M.getParameter('rSigma_sqrtminv'), M.getVariable('u'))
@@ -192,17 +344,34 @@ def infinite_constraint(M: mf.Model, H: PolynomialFunction, G_Es: List[Polynomia
                                              mf.Expr.sum(mf.Expr.mulElm(
                                                  G_Rs_each_interval_np[:, k_iteration].tolist(), constraint_rectangle_coefficient))
                                              )
-        infinite_constraint_basis(M, y, interval_left, interval_right)
+        infinite_constraint_helper(M, y, interval_left, interval_right)
 
 
-def infinite_constraint_basis(M: mf.Model, y: List[mf.Expression], b: float, c: float = np.inf) -> None:
-    '''
-    A semi-definite representation of     
-        if c==inf:
-            sum_i=0^k y_{i}x^i\geq 0, x\geq b
-        if c < inf:
-            sum_i=0^k y_{i}x^i\geq 0, b\leq x \leq c
-    '''
+def infinite_constraint_helper(M: mf.Model, y: List[mf.Expression], b: float, c: float = np.inf) -> None:
+    """
+    Apply semi-definite constraints to represent infinite polynomial inequalities.
+
+    This function adds constraints to the MOSEK Fusion model to represent the following inequalities:
+    - If c is infinite: sum(y[i] * x^i) >= 0 for x >= b
+    - If c is finite: sum(y[i] * x^i) >= 0 for b <= x <= c
+
+    Parameters:
+    -----------
+    M : mf.Model
+        The MOSEK Fusion model to which constraints will be added.
+    y : List[mf.Expression]
+        List of coefficients for the polynomial inequality.
+    b : float
+        Lower bound of the interval.
+    c : float, optional
+        Upper bound of the interval. Default is np.inf.
+
+    Notes:
+    ------
+    This function uses semi-definite programming techniques to represent
+    infinite-dimensional polynomial inequalities as finite-dimensional
+    matrix inequalities.
+    """
     k = len(y)-1
     if c == np.inf:
         V = M.variable('PSDmatrix_{:}_{:}'.format(
@@ -234,6 +403,60 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
                  h: 'PolynomialFunction' = None,
                  g_Es: List['PolynomialFunction'] = None, mu_value: np.ndarray = None, Sigma: np.ndarray = None, radius: float = None,
                  g_Rs: List['PolynomialFunction'] = None, mu_lb_value: np.ndarray = None, mu_ub_value: np.ndarray = None) -> float:
+    """
+    Solve an optimization problem with polynomial constraints using MOSEK Fusion.
+
+    This function sets up and solves an optimization problem with polynomial constraints,
+    including ellipsoidal and rectangular constraints. It uses semi-definite programming
+    techniques to handle infinite-dimensional polynomial inequalities.
+
+    Parameters:
+    -----------
+    D_riser_number : int
+        The order of integration for the objective function.
+    eta : float, optional
+        Parameter used when D_riser_number is 1.
+    eta_lb : float, optional
+        Lower bound for eta when D_riser_number is 2.
+    eta_ub : float, optional
+        Upper bound for eta when D_riser_number is 2.
+    nu : float, optional
+        Parameter used when D_riser_number is 2.
+    threshold_level : float
+        The minimum x value for which the functions are defined.
+    h : PolynomialFunction
+        The objective function.
+    g_Es : List[PolynomialFunction], optional
+        List of ellipsoidal constraint functions.
+    mu_value : np.ndarray, optional
+        Mean value for ellipsoidal constraints.
+    Sigma : np.ndarray, optional
+        Covariance matrix for ellipsoidal constraints.
+    radius : float, optional
+        Radius for ellipsoidal constraints.
+    g_Rs : List[PolynomialFunction], optional
+        List of rectangular constraint functions.
+    mu_lb_value : np.ndarray, optional
+        Lower bound for rectangular constraints.
+    mu_ub_value : np.ndarray, optional
+        Upper bound for rectangular constraints.
+
+    Returns:
+    --------
+    float
+        The optimal value of the objective function.
+
+    Raises:
+    -------
+    AssertionError
+        If required parameters are not provided.
+
+    Notes:
+    ------
+    This function uses MOSEK Fusion to model and solve the optimization problem.
+    It handles different types of constraints and integration orders, adapting
+    the problem formulation accordingly.
+    """
 
     if D_riser_number is None or threshold_level is None or h is None or (g_Es is None and g_Rs is None):
         assert False

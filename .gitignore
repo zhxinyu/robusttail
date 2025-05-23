@@ -14,3 +14,6 @@ __pycache__/*
 .lintr
 *.code-workspace
 pg.ipynb
+.env
+gitignore_files/**
+*.synctex.gz

@@ -36,16 +36,16 @@ if __name__ == '__main__':
         percentageRHS = percentageLHS + trueValue
         for dataSource in dataSources:
             dataModule = stringToDataModule[dataSource]
-            leftEndPointObjective = dpu.endPointGeneration(
-                dataModule, percentageLHS, dpu.dataModuleToDefaultParamDict[dataModule])
-            rightEndPointObjective = dpu.endPointGeneration(
-                dataModule, percentageRHS, dpu.dataModuleToDefaultParamDict[dataModule])
+            leftEndPointObjective = dpu.get_quantile(
+                dataModule, percentageLHS, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule])
+            rightEndPointObjective = dpu.get_quantile(
+                dataModule, percentageRHS, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule])
             for nnrep in range(nrep):
                 print(f"Working on {percentageLHS}_{dataSource}_{nnrep}")
                 try:
                     metaDataDict['random_state'] = randomSeed+nnrep
-                    inputData = dpu.RawDataGeneration(dataModule, 
-                                                      dpu.dataModuleToDefaultParamDict[dataModule], 
+                    inputData = dpu.generate_synthetic_data(dataModule, 
+                                                      dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule], 
                                                       metaDataDict['dataSize'], 
                                                       metaDataDict['random_state'])
                     POTApply = '''

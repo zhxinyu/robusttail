@@ -1,6 +1,6 @@
 .ipynb_checkpoints/*
 */.ipynb_checkpoints/*
-__pycache__/*
+__pycache__
 .DS_Store
 */*.aux
 */*.pdf
@@ -17,3 +17,5 @@ pg.ipynb
 .env
 gitignore_files/**
 *.synctex.gz
+.Rhistory
+.cursor

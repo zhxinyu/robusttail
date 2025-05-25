@@ -88,8 +88,8 @@ def quantileEstimationnPerRep(dataModule,
                               alpha: float,
                               random_state: int) -> typing.List[float]:
 
-    inputData = dpu.RawDataGeneration(
-        dataModule, dpu.dataModuleToDefaultParamDict[dataModule], dataSize, random_state)
+    inputData = dpu.generate_synthetic_data(
+        dataModule, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule], dataSize, random_state)
     outputPerRep = []
     # outputPerRep.append(quantileEstimationWithRectangularConstraintBinarySearchUnit(1, inputData,
     #                                                                               thresholdPercentage,
@@ -116,8 +116,8 @@ def quantileEstimationnPerRep(dataModule,
 if __name__ == '__main__':
     dataSize = 500
     quantitleValue = 0.99
-    trueValue = dpu.endPointGeneration(
-        gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
+    trueValue = dpu.get_quantile(
+        gamma, quantitleValue, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[gamma])
     thresholdPercentage = 0.7
     alpha = 0.05
     random_state = 20220222

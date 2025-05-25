@@ -40,10 +40,10 @@ def runner(args):
         percentageRHS = percentageLHS + trueValue
         for dataSource in dataSources:
             dataModule = stringToDataModule[dataSource]
-            leftEndPointObjective = dpu.endPointGeneration(
-                dataModule, percentageLHS, dpu.dataModuleToDefaultParamDict[dataModule])
-            rightEndPointObjective = dpu.endPointGeneration(
-                dataModule, percentageRHS, dpu.dataModuleToDefaultParamDict[dataModule])
+            leftEndPointObjective = dpu.get_quantile(
+                dataModule, percentageLHS, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule])
+            rightEndPointObjective = dpu.get_quantile(
+                dataModule, percentageRHS, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule])
             for nnrep in range(nrep):
                 print(f"Working on {percentageLHS}_{dataSource}_{nnrep}")
                 try:

@@ -100,8 +100,8 @@ def tableTwo():
         df["dataSize"] = dataSize
         df["quantitleValue"] = quantitleValue
         df["thresholdPercentage"] = thresholdPercentage
-        trueValue = dpu.endPointGeneration(
-            stringToDataModule[dataDistribution], quantitleValue, dpu.dataModuleToDefaultParamDict[stringToDataModule[dataDistribution]])        
+        trueValue = dpu.get_quantile(
+            stringToDataModule[dataDistribution], quantitleValue, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[stringToDataModule[dataDistribution]])        
         df["trueValue"] = trueValue
 
         cumDf3 = cumDf3.append(df)    
@@ -239,8 +239,8 @@ def tableThreeThree():
         df["dataSize"] = dataSize
         df["quantitleValue"] = quantitleValue
         df["thresholdPercentage"] = thresholdPercentage
-        trueValue = dpu.endPointGeneration(
-            stringToDataModule[dataDistribution], quantitleValue, dpu.dataModuleToDefaultParamDict[stringToDataModule[dataDistribution]])        
+        trueValue = dpu.get_quantile(
+            stringToDataModule[dataDistribution], quantitleValue, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[stringToDataModule[dataDistribution]])        
         df["trueValue"] = trueValue
 
         cumDf3 = cumDf3.append(df)    
@@ -289,8 +289,8 @@ def tableThreeFour():
         df["dataSize"] = dataSize
         df["quantitleValue"] = quantitleValue
         df["thresholdPercentage"] = thresholdPercentage    
-        trueValue = dpu.endPointGeneration(
-            stringToDataModule[dataDistribution], quantitleValue, dpu.dataModuleToDefaultParamDict[stringToDataModule[dataDistribution]])    
+        trueValue = dpu.get_quantile(
+            stringToDataModule[dataDistribution], quantitleValue, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[stringToDataModule[dataDistribution]])    
         df["trueValue"] = trueValue
 
         cumDf4 = cumDf4.append(df)            

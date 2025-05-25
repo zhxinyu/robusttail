@@ -32,8 +32,8 @@ if __name__ == '__main__':
         os.mkdir(FILE_DIR)
     nExperimentReptition = 200
     randomSeed = 20220222
-    # trueValue = dpu.endPointGeneration(
-    #     gamma, quantitleValue, dpu.dataModuleToDefaultParamDict[gamma])
+    # trueValue = dpu.get_quantile(
+    #     gamma, quantitleValue, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[gamma])
     dataDistributions = ['gamma', 'lognorm', 'pareto']
     thresholdPercentages = [0.70]
     # served as the target percentage the problem aims to estimate the quantile point from.

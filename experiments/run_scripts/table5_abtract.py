@@ -1,87 +1,60 @@
-from table5_central_import import *
+
+from scipy.stats import gamma, lognorm, pareto, genpareto
+import pandas as pd
+
+import droevt.utils.synthetic_data_generator as data_utils
+import tail_probability.benchmark_tail_probability_estimation as benchmark_tpe
+
 
 def runner(args):
-    randomSeed = 20220222
-    stringToDataModule = {"gamma": gamma,
-                          "lognorm": lognorm,
-                          "pareto": pareto}
-    trueValue = 0.005
-    metaDataDict = {"dataSize": 500}
-    percentageLHSs = [args.lhs]
-    dataSources = [ args.ds ]
+    random_seed = 20220222
+    string_to_data_module = {"gamma": gamma,
+                             "lognorm": lognorm,
+                             "pareto": pareto,
+                             "genpareto": genpareto}
+    true_value = "0.005"
+    meta_data_dict = {"data_size": 500}
+    list_percentage_lhs = [args.lhs]
+    data_sources = [ args.ds ]
     method = args.method
-    if method == 'pot':
-        with open('gpdTIP_pot.R','r') as f:
-            RCodeLib = f.read()    
-    elif method == 'pot_bt':
-        with open('gpdTIP_pot_bt.R','r') as f:
-            RCodeLib = f.read()
-    elif method == 'pl':
-        with open('gpdTIP_pl.R','r') as f:
-            RCodeLib = f.read()
-    elif method == 'bayesian':
-        with open('gpdTIP_bayesian.R','r') as f:
-            RCodeLib = f.read()
-    elif method == 'pwm':
-        with open('gpdTIP_pwm.R','r') as f:
-            RCodeLib = f.read()
-    else:
-        raise NotImplementedError()
-    
-    file_dir = f'large_table5_{method}'
-    if not os.path.exists(file_dir):
-        os.makedirs(file_dir)
-    
+    alpha = 0.05
     nrep = 200
     result = []
     columns = ["Data Source", 'nData',"percentageLHS", "Lower Bound","Upper Bound", "True Value", "Repetition Index"]
-    for percentageLHS in percentageLHSs:
-        percentageLHS = np.round(percentageLHS, 2)
-        percentageRHS = percentageLHS + trueValue
-        for dataSource in dataSources:
-            dataModule = stringToDataModule[dataSource]
-            leftEndPointObjective = dpu.get_quantile(
-                dataModule, percentageLHS, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule])
-            rightEndPointObjective = dpu.get_quantile(
-                dataModule, percentageRHS, dpu.DISTRIBUTION_DEFAULT_PARAMETERS[dataModule])
+    for percentage_lhs in list_percentage_lhs:
+        percentage_lhs = float(percentage_lhs)
+        percentage_rhs = percentage_lhs + float(true_value)
+        for data_source in data_sources:
+            data_module = string_to_data_module[data_source]
+            data_size = meta_data_dict['data_size']
+            left_end_point_objective = data_utils.get_quantile(
+                data_module, percentage_lhs, data_utils.DISTRIBUTION_DEFAULT_PARAMETERS[data_module.name])
+            right_end_point_objective = data_utils.get_quantile(
+                data_module, percentage_rhs, data_utils.DISTRIBUTION_DEFAULT_PARAMETERS[data_module.name])
+
             for nnrep in range(nrep):
-                print(f"Working on {percentageLHS}_{dataSource}_{nnrep}")
+                print(f"Working on {percentage_lhs}_{data_source}_{nnrep}")
                 try:
-                    metaDataDict['random_state'] = randomSeed+nnrep
-                    RCodeApply = f'''
-lhs <- {leftEndPointObjective}
-
-rhs <- {rightEndPointObjective}
-
-data <-  c(t(read.csv("./large_data/{dataSource}/default/randomseed={randomSeed+nnrep}.csv", header=FALSE)))
-
-out <- tryCatch(
-	gpdTIP(data, lhs, rhs, conf=0.95), 
-	error = function(e) e
-)
-
-if ("error" %in% class(out)) {{
-  print(out)
-}}
-
-bbd <- if ("error" %in% class(out)) NA else{{
-	out$CI
-}}
-bbd 
-                    '''
-                    roResult = ro.r(RCodeLib+RCodeApply)
-                    result.append([dataSource, metaDataDict['dataSize'], percentageLHS, roResult[0], roResult[1], trueValue, nnrep])
+                    input_data = data_utils.generate_synthetic_data(
+                        data_module, data_utils.DISTRIBUTION_DEFAULT_PARAMETERS[data_source], data_size, random_seed+nnrep)                    
+                    ro_result = benchmark_tpe.benchmark_estimate_tail_probability(
+                        input_data=input_data, 
+                        left_end_point_objective=left_end_point_objective, 
+                        right_end_point_objective=right_end_point_objective, 
+                        alpha=alpha,
+                        method=method)
+                    result.append([data_source, meta_data_dict['data_size'], percentage_lhs, ro_result[0], ro_result[1], true_value, nnrep])
                     print(result[-1])
                 except Exception as e: 
                     print(e)
-                    result.append([dataSource, metaDataDict['dataSize'], 
-                                percentageLHS, 0, 
-                                0, 
-                                trueValue, nnrep])
+                    result.append([data_source, meta_data_dict['data_size'], 
+                                   percentage_lhs, 0, 
+                                   0, 
+                                   true_value, nnrep])
             # assert False
-            print(f"Finish experiments on {percentageLHS}-{dataSource}")
-            df = pd.DataFrame(data = result, columns = columns)
-            df.to_csv(os.path.join(file_dir, f'table5_{percentageLHS}_{dataSource}.csv'), header=columns, index = False)
+            print(f"Finish experiments on {percentage_lhs}-{data_source}")
+            df = pd.DataFrame(data=result, columns=columns)
+            # df.to_csv(os.path.join(file_dir, f'table5_{percentage_lhs}_{data_source}.csv'), header=columns, index = False)
 
 if __name__ == '__main__':
 
@@ -102,10 +75,13 @@ if __name__ == '__main__':
         echo "done all processes."
         ``` 
     """
+    # Import argparse at the top of the file
+    import argparse
+    
     parser = argparse.ArgumentParser(description='TIP estimation with user-specific methods.')
-    parser.add_argument('lhs', type=float, help='LHS in the objective function')
-    parser.add_argument('ds', type=str, help='Data source for simulation')
-    parser.add_argument('method', type=str, help='choose the method for tail probability estimation: pot, pl, bayesian and pwm')
+    parser.add_argument('--lhs', type=float, default=0.9, required=False, help='LHS in the objective function')
+    parser.add_argument('--ds', type=str, default='gamma', required=False, help='Data source for simulation')
+    parser.add_argument('--method', type=str, default='pwm', required=False, help='choose the method for tail probability estimation: pot, pl, bayesian and pwm')
     args = parser.parse_args()
     
     runner(args)

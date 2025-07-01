@@ -46,7 +46,7 @@ gradientpGPD <- function(x,xi,beta,eps = 1e-12)
   return(output)
 }
 
-asymptoticCIforGPDfit_m <- function(fitGPD,h,hGrad, alpha = 0.05,verbose = TRUE)
+asymptoticCIforGPDfit_m <- function(fitGPD,h,hGrad, alpha = 0.05, verbose = TRUE)
 {
   
   # Getting the parameters with the library ismev

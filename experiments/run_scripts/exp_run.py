@@ -32,7 +32,8 @@ def base_meta_data_dict():
 
     return meta_data_dict, string_to_data_module
 
-def _parallel_run_data_module(pool_param: tuple) ->  typing.List[float]:
+
+def _parallelRun(pool_param: tuple) ->  typing.List[float]:
     _, string_to_data_module = base_meta_data_dict()
 
     _data_distribution, _meta_data_dict, _random_state = pool_param
@@ -134,9 +135,9 @@ def base_runner_tail_probability(
         logger.info("Writing: " + os.path.join(FOLDER_DIR, FILE_NAME))
         try:
             with Pool() as p:
-                df = pd.DataFrame(np.asarray(p.map(_parallel_run_data_module, pool_param_list)),
-                                  columns=["(0,KS)", "(1,KS)", "(2,KS)",
-                                           "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"])
+                df = pd.DataFrame(np.asarray(p.map(_parallelRun, pool_param_list)),
+                                    columns=["(0,KS)", "(1,KS)", "(2,KS)",
+                                             "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"])
                 # Right-align each column with width of 12 characters to ensure alignment between headers and values
                 logger.info(" ".join([f"{col:>12}" for col in df.columns]))
                 logger.info(" ".join([f"{val:>12.2E}" for val in df.mean(axis=0)]))
@@ -232,64 +233,6 @@ def exp_tail_probability_scarce_data():
                 n_experiment_repetitions=n_experiment_repetitions,
                 bootstrapping_size=bootstrapping_size)
 
-def _parallel_real_data_run(pool_param: tuple) ->  typing.List[float]:
-    intput_data_region, meta_data_dict, FOLDER_DIR, FILE_NAME, exp_name = pool_param
-    parameter_pairs = FILE_NAME.removeprefix(exp_name + "_").removesuffix('.csv').split('=')
-    names = [x.split('_', maxsplit=1)[1] if idx !=0 else x for idx, x in enumerate(parameter_pairs[:-1])]
-    values = [x.split('_', maxsplit=1)[0] for _, x in enumerate(parameter_pairs[1:]) ]
-
-    logger.info(f"Running experiment {exp_name} with parameters:")
-    # Using blue (94) for parameter names and green (92) for values
-    logger.info(" ".join([f"\033[94m{name:>{max(len(name), len(value))}}\033[0m" for name, value in zip(names,values)]))
-    logger.info(" ".join([f"\033[92m{value:>{max(len(name), len(value))}}\033[0m" for name, value in zip(names,values)]))
-
-    file_path = os.path.join(FOLDER_DIR, FILE_NAME)
-    if os.path.exists(file_path):
-        # Using yellow (93) color for "Already exists!"
-        logger.info("Note: \033[93mAlready exists!\033[0m Write: " + file_path)
-        df = pd.read_csv(file_path, index_col="Experiment Repetition Index")
-        logger.info(" ".join([f"{col:>12}" for col in df.columns]))
-        logger.info(" ".join([f"{val:>12.2E}" for val in df.mean(axis=0)]))
-        return FILE_NAME, df.mean(axis=0).to_dict(), "exists"
-    
-    logger.info("Writing: " + file_path)
-    try:                         
-        df = pd.DataFrame([tpe.estimate_tail_probability(input_data=intput_data_region, **meta_data_dict)],
-                            columns=["(0,KS)", "(1,KS)", "(2,KS)",
-                                        "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"])
-
-        # Right-align each column with width of 12 characters to ensure alignment between headers and values
-        logger.info(" ".join([f"{col:>12}" for col in df.columns]))
-        logger.info(" ".join([f"{val:>12.2E}" for val in df.mean(axis=0)]))
-        df.to_csv(file_path, index=True, index_label="Experiment Repetition Index")
-        logger.info("\033[92mSuccess!\033[0m")
-        return (FILE_NAME, df.mean(axis=0).to_dict(), "success")
-    
-    except BaseException as ex:
-        logger.error("Fail on " + file_path)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-        # Get current system exception
-        ex_type, ex_value, ex_traceback = sys.exc_info()
-
-        # Extract unformatter stack traces as tuples
-        trace_back = traceback.extract_tb(ex_traceback)
-
-        # Format stacktrace
-        stack_trace = list()
-
-        for trace in trace_back:
-            stack_trace.append("File : %s , Line : %d, Func.Name : %s, Message : %s" % (
-                trace[0], trace[1], trace[2], trace[3]))
-
-        logger.error("Exception type : %s " % ex_type.__name__)
-        logger.error("Exception message : %s" % ex_value)
-        for i, trace in enumerate(stack_trace):
-            logger.error("Stack trace %d: %s" % (i+1, trace))
-
-        return (FILE_NAME, str(ex), "fail")
-
 def exp_tail_probability_real_data():
     # Experiment on real data
 
@@ -298,56 +241,93 @@ def exp_tail_probability_real_data():
     FOLDER_DIR = os.path.join(pathlib.Path(__file__).parents[1], "raw_output", exp_name)
     if not os.path.isdir(FOLDER_DIR):
        os.mkdir(FOLDER_DIR)
-    logger.info("Experiment name: %s", exp_name)
-
     meta_data_dict = {"alpha": 0.05,
                       "g_ellipsoidal_dimension": 3}
+
+    logger.info("Experiment name: %s", exp_name)
     regions = ["ECUADOR", "OFF_COAST_OF_NORTHERN_CA", "TURKEY", "HOKKAIDO_JAPAN_REGION", 
                "BANDA_SEA", "KURIL_ISLANDS", "SOLOMON_ISLANDS", "FIJI_ISLANDS_REGION"]
     threshold_percentages = ["0.6","0.65","0.7","0.75","0.8","0.85"]
-    left_end_point_objectives = ["7.0", "7.1", "7.2", "7.3", "7.4", "7.5", 
-                                 "7.6", "7.7", "7.8", "7.9", "8.0",
-                                 "7.25"]
+
     bootstrapping_size=500
     random_seed = 20220222
-    meta_data_dict["bootstrapping_size"] = bootstrapping_size
-    meta_data_dict["random_state"] = random_seed
-    meta_data_dict["right_end_point_objective"] = np.inf
 
-    intput_data_regions = [np.loadtxt(os.path.join(pathlib.Path(__file__).parents[1], 
+    meta_data_dict["left_end_point_objective"] = ["7.0", "7.1", "7.2", "7.3", "7.4", "7.5", 
+                                                  "7.6", "7.7", "7.8", "7.9", "8.0",
+                                                  "7.25"]
+
+    meta_data_dict["right_end_point_objective"] = np.inf
+    meta_data_dict["bootstrapping_size"] = bootstrapping_size
+
+    for region in regions:
+        inputData = np.loadtxt(os.path.join(pathlib.Path(__file__).parents[1], 
                                             "input_data", 
                                             "cmt", 
                                             "parsed_data", 
                                             region+".csv"))
-                                            for region in regions]
 
-    # Prepare parameter list
-    param_list = []
-    for region, intput_data_region, threshold_percentage, left_end_point_objective in itertools.product(
-            regions, intput_data_regions, threshold_percentages, left_end_point_objectives):
-        
-        _meta_data_dict = meta_data_dict.copy()
-        _meta_data_dict["left_end_point_objective"] = float(left_end_point_objective)
-        _meta_data_dict["threshold_percentage"] = float(threshold_percentage)
-        FILE_NAME = [exp_name + f"_region={region.replace('_', '-')}"]
-        FILE_NAME += [key+"="+str(_meta_data_dict[key]) for key in _meta_data_dict if key != "bootstrapping_size"]
-        FILE_NAME = '_'.join(FILE_NAME)+".csv"
+        for threshold_percentage in threshold_percentages:
+            meta_data_dict["threshold_percentage"] = float(threshold_percentage)
+            meta_data_dict["random_state"] = random_seed
 
+            FILE_NAME = [exp_name + f"_region={region.replace('_', '-')}"]
+            FILE_NAME += [key+"="+str(meta_data_dict[key]) for key in meta_data_dict if key != "bootstrapping_size"]
+            FILE_NAME = '_'.join(FILE_NAME)+".csv"
+            parameter_pairs = FILE_NAME.removeprefix(exp_name + "_").removesuffix('.csv').split('=')
+            names = [x.split('_', maxsplit=1)[1] if idx !=0 else x for idx, x in enumerate(parameter_pairs[:-1])]
+            values = [x.split('_', maxsplit=1)[0] for _, x in enumerate(parameter_pairs[1:]) ]
 
-        param_list.append((intput_data_region, _meta_data_dict, FOLDER_DIR, FILE_NAME, exp_name))
+            logger.info(f"Running experiment {exp_name} with parameters:")
+            # Using blue (94) for parameter names and green (92) for values
+            logger.info(" ".join([f"\033[94m{name:>{max(len(name), len(value))}}\033[0m" for name, value in zip(names,values)]))
+            logger.info(" ".join([f"\033[92m{value:>{max(len(name), len(value))}}\033[0m" for name, value in zip(names,values)]))
 
-    with Pool() as pool:
-        results = pool.map(_parallel_real_data_run, param_list)
-        
-    # Optionally, log results
-    for FILE_NAME, result, status in results:
-        if status == "success":
-            logger.info(f"Success: {FILE_NAME} {result}")
-        elif status == "exists":
-            logger.info(f"Already exists: {FILE_NAME}")
-        else:
-            logger.error(f"Failed: {FILE_NAME} {result}")
-        
+            if os.path.exists(os.path.join(FOLDER_DIR, FILE_NAME)):
+                # Using yellow (93) color for "Already exists!"
+                logger.info("Note: \033[93mAlready exists!\033[0m Write: " +
+                            os.path.join(FOLDER_DIR, FILE_NAME))
+                df = pd.read_csv(os.path.join(FOLDER_DIR, FILE_NAME),
+                                index_col="Experiment Repetition Index")
+                logger.info(" ".join([f"{col:>12}" for col in df.columns]))
+                logger.info(" ".join([f"{val:>12.2E}" for val in df.mean(axis=0)]))
+                continue
+
+            logger.info("Writing: " + os.path.join(FOLDER_DIR, FILE_NAME))
+            try:                         
+                df = pd.DataFrame([tpe.estimate_tail_probability(input_data=inputData, **meta_data_dict)],
+                                  columns=["(0,KS)", "(1,KS)", "(2,KS)",
+                                           "(0,CHI2)", "(1,CHI2)", "(2,CHI2)"])
+
+                # Right-align each column with width of 12 characters to ensure alignment between headers and values
+                logger.info(" ".join([f"{col:>12}" for col in df.columns]))
+                logger.info(" ".join([f"{val:>12.2E}" for val in df.mean(axis=0)]))
+                df.to_csv(os.path.join(FOLDER_DIR, FILE_NAME),
+                            index=True,
+                            index_label="Experiment Repetition Index")
+                logger.info("\033[92mSuccess!\033[0m")
+            except BaseException as ex:
+                logger.error("Fail on "+os.path.join(FOLDER_DIR, FILE_NAME))
+                if os.path.exists(os.path.join(FOLDER_DIR, FILE_NAME)):
+                    os.remove(os.path.join(FOLDER_DIR, FILE_NAME))
+
+                # Get current system exception
+                ex_type, ex_value, ex_traceback = sys.exc_info()
+
+                # Extract unformatter stack traces as tuples
+                trace_back = traceback.extract_tb(ex_traceback)
+
+                # Format stacktrace
+                stack_trace = list()
+
+                for trace in trace_back:
+                    stack_trace.append("File : %s , Line : %d, Func.Name : %s, Message : %s" % (
+                        trace[0], trace[1], trace[2], trace[3]))
+
+                logger.error("Exception type : %s " % ex_type.__name__)
+                logger.error("Exception message : %s" % ex_value)
+                for i, trace in enumerate(stack_trace):
+                    logger.error("Stack trace %d: %s" % (i+1, trace))
+
 if __name__ == '__main__':
     logger.info("Starting experiment of tail probability estimation")
     # exp_tail_probability_thresholds()

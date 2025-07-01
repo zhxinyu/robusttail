@@ -1,6 +1,3 @@
-rm(list=ls())
-source("common_utils.R")
-
 gpd_neg_loglikelihood <- function(x, data, u) {
   scale <- x[1]
   shape <- x[2]
@@ -30,6 +27,9 @@ gpd_neg_loglikelihood_derivative <- function(x, data, u) {
 }
 
 pgpd <- function(x, loc, scale, shape) {
+  if (x == Inf) {
+    return(1)
+  }
   if (shape == 0) {
     return(1-log(-(x-loc)/scale))
   } else {
@@ -63,12 +63,21 @@ eval_tip <- function(x, data, u, lhs, rhs) {
 
 sampleProposal <- function(x0, prior_scale, prior_shape, u) {
   # Generate samples
+  max_attempts <- 1000  # Prevent infinite loop
+  attempts <- 0
+  
   repeat {
+    attempts <- attempts + 1
+    if (attempts > max_attempts) {
+      warning("Maximum attempts reached in sampleProposal. Returning current x0.")
+      return(x0)
+    }
+    
     xstar <- mvrnorm(1, mu = x0, Sigma = matrix(c(1, 0, 0, 1), nrow = 2))
     if (xstar[1] > prior_scale[1] && xstar[1] < prior_scale[2] &&
         xstar[2] > prior_shape[1] && xstar[2] < prior_shape[2]
     ) {
-      # notice the proposal probability distributio ratio is equal to 1 so we skip the term
+      # notice the proposal probability distribution ratio is equal to 1 so we skip the term
       # in the code, i.e. Q(xstar|x0) = Q(x0|xstar) if Q(x'|x) ~ N(x, I). 
       accrej <- exp( min(0, -gpd_neg_loglikelihood(xstar, data, u) + 
                              gpd_neg_loglikelihood(x0,    data, u))
@@ -161,7 +170,7 @@ gpdTIP <- function(data, lhs, rhs, conf = .95, u = NULL) {
   prior_shape <- c(x0[2] - 1, x0[2] + 1)
 
   bound_val <- estimateTIPviaMCMC(x=x0, prior_scale=prior_scale, prior_shape=prior_shape,
-                                  data=data, u=u, lhs=lhs, rhs=rhs, conf=.95)
+                                  data=data, u=u, lhs=lhs, rhs=rhs, conf=conf)
 
   CI <- c(bound_val[1], bound_val[2])
   out <- list(estimate, CI, conf)

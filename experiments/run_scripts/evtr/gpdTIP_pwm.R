@@ -1,6 +1,6 @@
-rm(list=ls())
+# rm(list=ls())
 
-source("common_utils.R")
+# source("common_utils.R")
 
 asymptoticCIforGPD_delta <- function(fitGPD, h, hGrad, alpha=0.05, verbose = TRUE){
 	# Delta method
@@ -86,8 +86,18 @@ gpdTIP <- function(data, lhs, rhs, conf = .95, u=NULL) {
     fitGPD <- list(shape_mom=shape_mom, scale_mom=scale_mom, Sigma_mom=Sigma_mom, 
                    shape_pwm=shape_pwm, scale_pwm=scale_pwm, Sigma_pwm=Sigma_pwm,
                    prob_over_threshold=prob_over_threshold, nexc=n)
-    h <- function(shape, scale) POT::pgpd(q=rhs-u, scale=scale, shape=shape) - POT::pgpd(q=lhs-u,scale=scale, shape=shape)
-    hGrad <- function(shape, scale) gradientpGPD(x=rhs-u, xi=shape, beta=scale) - gradientpGPD(x=lhs-u, xi=shape, beta=scale)
+    h <- function(shape, scale) {
+        if (rhs == Inf) {
+            return(1-POT::pgpd(q=lhs-u,scale=scale, shape=shape))
+        }
+        return(POT::pgpd(q=rhs-u, scale=scale, shape=shape) - POT::pgpd(q=lhs-u,scale=scale, shape=shape))
+    }
+    hGrad <- function(shape, scale) {
+        if (rhs == Inf) {
+            return(-gradientpGPD(x=lhs-u, xi=shape, beta=scale))
+        }
+        return(gradientpGPD(x=rhs-u, xi=shape, beta=scale) - gradientpGPD(x=lhs-u, xi=shape, beta=scale))
+    }
 	
 	Ubd <- asymptoticCIforGPD_delta(fitGPD, h, hGrad, verbose = FALSE)
 

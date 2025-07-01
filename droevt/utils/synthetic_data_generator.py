@@ -32,7 +32,7 @@ DISTRIBUTION_DEFAULT_PARAMETERS = {
         "scale": 1     # scale parameter
     }, # Quantile points for 0.99: [3.317, 10.24, 21.54]
     "genpareto": {
-        "c": -0.05,     # c < 0 gives bounded tail (Weibull). The right endpoint is 20.
+        "c": -0.1,     # c < 0 gives bounded tail (Weibull). The right endpoint is 10.
     } 
 }
 

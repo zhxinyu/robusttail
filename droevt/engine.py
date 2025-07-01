@@ -227,7 +227,7 @@ def off_diag_auxmat(k: int, sum_index: int) -> List[List[int]]:
     return auxmat.tolist()
 
 
-def infinite_constraint(M: "mf.Model", H: PolynomialFunction, G_Es: List[PolynomialFunction], G_Rs: List[PolynomialFunction], right_endpoint: float = np.inf) -> None:
+def infinite_constraint(M: "mf.Model", H: PolynomialFunction, G_Es: List[PolynomialFunction], G_Rs: List[PolynomialFunction], right_end_point: float) -> None:
     """
     Apply infinite constraints to the optimization model.
 
@@ -245,8 +245,8 @@ def infinite_constraint(M: "mf.Model", H: PolynomialFunction, G_Es: List[Polynom
         List of ellipsoidal constraint functions.
     G_Rs : List[PolynomialFunction]
         List of rectangular constraint functions.
-    right_endpoint : float, optional
-        The right endpoint of the interval. Default is np.inf
+    right_end_point : float
+        The right endpoint of the interval.
         
     Returns:
     --------
@@ -279,8 +279,8 @@ def infinite_constraint(M: "mf.Model", H: PolynomialFunction, G_Es: List[Polynom
     assert np.inf not in set(input_endpoints)
     input_endpoints = list(set(input_endpoints))
     input_endpoints.sort()
-    assert input_endpoints[-1] < right_endpoint, "The right endpoint must be greater than the last input endpoint"
-    input_endpoints += [right_endpoint]
+    assert input_endpoints[-1] < right_end_point, "The right endpoint must be greater than the last input endpoint"
+    input_endpoints += [right_end_point]
 
     if G_Es:
         constraint_ellipsoid_coefficient = mf.Expr.mul(
@@ -405,7 +405,8 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
                  threshold_level: float = None,
                  h: 'PolynomialFunction' = None,
                  g_Es: List['PolynomialFunction'] = None, mu_value: np.ndarray = None, Sigma: np.ndarray = None, radius: float = None,
-                 g_Rs: List['PolynomialFunction'] = None, mu_lb_value: np.ndarray = None, mu_ub_value: np.ndarray = None) -> float:
+                 g_Rs: List['PolynomialFunction'] = None, mu_lb_value: np.ndarray = None, mu_ub_value: np.ndarray = None,
+                 right_end_point: float = np.inf) -> float:
     """
     Solve an optimization problem with polynomial constraints using MOSEK Fusion.
 
@@ -443,7 +444,8 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
         Lower bound for rectangular constraints.
     mu_ub_value : np.ndarray, optional
         Upper bound for rectangular constraints.
-
+    right_end_point : float
+        Right end point of probability distribution.
     Returns:
     --------
     float
@@ -580,7 +582,7 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
     M.objective('obj', mf.ObjectiveSense.Minimize, mf.Expr.add(
         mf.Expr.add(kappa, ellipsoid_obj_expr), rectangle_obj_expr))
     ## infinite constraint
-    infinite_constraint(M, H, G_Es, G_Rs)
+    infinite_constraint(M, H, G_Es, G_Rs, right_end_point)
 
     ## solve!
     # This solver logic attempts to solve the optimization problem and handles various scenarios:
@@ -599,7 +601,9 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
         # This typically happens with ill-conditioned problems
         if M.getProblemStatus() in [mf.ProblemStatus.PrimalAndDualFeasible, 
                                     mf.ProblemStatus.PrimalFeasible]:
-            return min(max(M.primalObjValue(), 0), 1)  # Clamp between 0 and 1
+            value = M.primalObjValue()
+            sign = 1 if value >= 0 else -1
+            return sign * min(max(sign * value, 0), 1)  # The absolute value is clamped between 0 and 1
         else:
             logger.warning(bcolors.WARNING + 
                            f"Problem status: {M.getProblemStatus()}. Returning 0." + 

@@ -1,7 +1,3 @@
-rm(list=ls())
-
-source("common_utils.R")
-
 MEplotFindThresh <- function (data) {
 	data <- as.numeric(data)
 	plt<-POT::mrlplot(data, u.range = c(quantile(data, probs = 0.6), quantile(data, probs = 0.995)), nt = 200)
@@ -24,7 +20,7 @@ MEplotFindThresh <- function (data) {
 	return(list("thresh"=u, "perc.thresh"=q_u))
 }
 
-gpdTIP <- function(data, lhs, rhs, conf=.95, u=NULL) {
+gpdTIP <- function(data, lhs, rhs, conf=0.95, u=NULL) {
 
 	if(lhs >= rhs) {
 		stop("Left end point must be smaller than right end point!")
@@ -44,9 +40,19 @@ gpdTIP <- function(data, lhs, rhs, conf=.95, u=NULL) {
 	Ubd <- if ("error" %in% class(fitGPD)) {
 		NA
 	} else{
-		h <- function(xi, beta) QRM::pGPD(rhs -u,xi,beta) - QRM::pGPD(lhs -u,xi,beta)
-		hGrad <- function(xi,beta) gradientpGPD(rhs-u,xi,beta) - gradientpGPD(lhs-u,xi,beta)
-		asymptoticCIforGPDfit_m(fitGPD, h, hGrad, verbose = FALSE)
+		h <- function(xi, beta) {
+			if (rhs == Inf) {
+				return(1-QRM::pGPD(lhs -u,xi,beta))
+			}
+			return(QRM::pGPD(rhs -u,xi,beta) - QRM::pGPD(lhs -u,xi,beta))
+		}
+		hGrad <- function(xi,beta) {
+			if (rhs == Inf) {
+				return(-gradientpGPD(lhs -u,xi,beta))
+			}
+			return(gradientpGPD(rhs-u,xi,beta) - gradientpGPD(lhs-u,xi,beta))
+		}
+		asymptoticCIforGPDfit_m(fitGPD, h, hGrad, alpha = 1 - conf, verbose = FALSE)
 	}
 
 	return(list(CI=Ubd))

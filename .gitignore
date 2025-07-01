@@ -19,3 +19,8 @@ gitignore_files/**
 *.synctex.gz
 .Rhistory
 .cursor
+.RData
+.RData.lock
+debug.R
+pg20250622.ipynb
+main.py

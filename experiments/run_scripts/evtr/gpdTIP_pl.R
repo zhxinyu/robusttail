@@ -1,7 +1,3 @@
-rm(list=ls())
-
-source("common_utils.R")
-
 gpd_neg_loglikelihood <- function(x, data, u) {
   scale <- x[1]
   shape <- x[2]
@@ -29,6 +25,9 @@ gpd_neg_loglikelihood_derivative <- function(x, data, u) {
   return(out)
 }
 pgpd <- function(x, loc, scale, shape) {
+  if (x == Inf) {
+    return(1)
+  }
   if (shape == 0) {
     return(1-log(-(x-loc)/scale))
   } else {
@@ -36,6 +35,9 @@ pgpd <- function(x, loc, scale, shape) {
   }
 }
 dgpd <-function(x, loc, scale, shape) {
+  if (x == Inf) {
+    return(0)
+  }
   if (shape == 0) {
     return(1/scale*exp(-(x-loc)/scale))
   } else {
@@ -43,9 +45,15 @@ dgpd <-function(x, loc, scale, shape) {
   }  
 }
 d_pgpd_d_scale <- function(x, loc, scale, shape) {
+  if (x == Inf) {
+    return(0)
+  }
   return(-dgpd(x, loc, scale, shape)*(x-loc)/scale)
 }
 d_pgpd_d_shape <- function(x, loc, scale, shape) {
+  if (x == Inf) {
+    return(0)
+  }
   first_part <- -(1-pgpd(x, loc, scale, shape))/shape**2*log(1+shape*(x-loc)/scale)
   second_part <- dgpd(x, loc, scale, shape)*(x-loc)/shape
   return(first_part+second_part)
@@ -109,13 +117,13 @@ gpdTIP <- function(data, lhs, rhs, conf = .95, u=NULL) {
 
   ## Find the maximum likelihood estimation and log likelihood value. 
   ## use either NLOPT_LD_SLSQP, LD_MMA
-  local_opts1 <- list(   "algorithm"  = "NLOPT_LD_MMA",
-                        "xtol_rel"   = 0,
-                        "xtol_abs"   = 1e-8,
-                         "maxeval"    = 1000,
-                        "check_derivatives" = FALSE,
-                        "check_derivatives_print" = "errors",                        
-                        "check_derivatives_tol" = 1e-04)
+  local_opts1 <- list("algorithm"  = "NLOPT_LD_MMA",
+                      "xtol_rel"   = 0,
+                      "xtol_abs"   = 1e-8,
+                      "maxeval"    = 1000,
+                      "check_derivatives" = FALSE,
+                      "check_derivatives_print" = "errors",                        
+                      "check_derivatives_tol" = 1e-04)
   local_res <- nloptr::nloptr(x0=x0, 
                               eval_f=eval_llh_f, 
                               lb=c(0, -Inf), ub=c(Inf, Inf), 
@@ -125,16 +133,16 @@ gpdTIP <- function(data, lhs, rhs, conf = .95, u=NULL) {
   llmax <- -local_res$objective
   x0 <- c(local_res$solution[1], local_res$solution[2])  
   cutoff <- qchisq(p=conf, df=1)
-  estimate <- base_probability*eval_llh_f(x=x0, data=data, u=u)$objective
+  estimate <- base_probability*eval_tip_f(x=x0, data=data, u=u, direction=1, lhs=lhs, rhs=rhs, llmax=llmax, cutoff=cutoff)$objective
 
   ## NLOPT_LD_SLSQP, LD_MMA
-  local_opts2 <- list(   "algorithm"  = "NLOPT_LD_MMA",
-                        "xtol_rel"   = 0,
-                        "xtol_abs"   = 1e-8,
-                        "maxeval"    = 1000,
-                        "check_derivatives" = FALSE,
-                        "check_derivatives_print" = "errors",
-                        "check_derivatives_tol" = 1e-4)
+  local_opts2 <- list("algorithm"  = "NLOPT_LD_MMA",
+                      "xtol_rel"   = 0,
+                      "xtol_abs"   = 1e-8,
+                      "maxeval"    = 1000,
+                      "check_derivatives" = FALSE,
+                      "check_derivatives_print" = "errors",
+                      "check_derivatives_tol" = 1e-4)
   direction <- 1
   opt_res <- nloptr::nloptr(x0=x0,
                             eval_f=eval_tip_f,

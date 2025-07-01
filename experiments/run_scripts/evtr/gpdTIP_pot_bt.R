@@ -1,7 +1,3 @@
-rm(list=ls())
-
-source("common_utils.R")
-
 gpdTIP <- function(data, lhs, rhs, conf = .95) {
 
 	if(lhs >= rhs) {
@@ -23,9 +19,19 @@ gpdTIP <- function(data, lhs, rhs, conf = .95) {
 	Ubd <- if ("error" %in% class(fitGPD)) {
 		NA
 	} else{
-		h <- function(xi, beta) QRM::pGPD(rhs -u,xi,beta) - QRM::pGPD(lhs -u,xi,beta)
-		hGrad <- function(xi,beta) gradientpGPD(rhs-u,xi,beta) - gradientpGPD(lhs-u,xi,beta)
-		asymptoticCIforGPDfit_m(fitGPD, h, hGrad, verbose = FALSE)
+		h <- function(xi, beta) {
+			if (rhs == Inf) {
+				return(1-QRM::pGPD(lhs -u,xi,beta))
+			}
+			return(QRM::pGPD(rhs -u,xi,beta) - QRM::pGPD(lhs -u,xi,beta))
+		}
+		hGrad <- function(xi,beta) {
+			if (rhs == Inf) {
+				return(-gradientpGPD(lhs -u,xi,beta))
+			}
+			return(gradientpGPD(rhs-u,xi,beta) - gradientpGPD(lhs-u,xi,beta))
+		}
+		asymptoticCIforGPDfit_m(fitGPD, h, hGrad, alpha = 1 - conf, verbose = FALSE)
 	}
 
 	return(list(CI=Ubd))

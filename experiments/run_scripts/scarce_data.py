@@ -1,6 +1,7 @@
 ## Case 1: 
 	# simulated n = 30 CLT
 import numpy as np
+from scipy.stats import gamma, lognorm, pareto, genpareto
 
 from table5_central_import import *
 
@@ -10,7 +11,8 @@ def runner(args):
     randomSeed = 20220222
     stringToDataModule = {"gamma":   gamma,
                           "lognorm": lognorm,
-                          "pareto":  pareto}
+                          "pareto":  pareto, 
+                          "genpareto": genpareto}
     trueValue = 0.005
     metaDataDict = {"dataSize": data_size}
     dataSources = [ args.ds ]
@@ -18,19 +20,19 @@ def runner(args):
     if method == 'pot':
         # We have two sources of failures: a). unable to solve fitGPD
         #                                  b). unable to obtain the cov matrix
-        with open('gpdTIP_pot.R','r') as f:
+        with open('run_scripts/evtr/gpdTIP_pot.R','r') as f:
             RCodeLib = f.read()
     if method == 'pot_bt':
-        with open('gpdTIP_pot_bt.R','r') as f:
+        with open('run_scripts/evtr/gpdTIP_pot_bt.R','r') as f:
             RCodeLib = f.read()    
     elif method == 'pl':
-        with open('gpdTIP_pl.R','r') as f:
+        with open('run_scripts/evtr/gpdTIP_pl.R','r') as f:
             RCodeLib = f.read()
     elif method == 'bayesian':
-        with open('gpdTIP_bayesian.R','r') as f:
+        with open('run_scripts/evtr/gpdTIP_bayesian.R','r') as f:
             RCodeLib = f.read()
     elif method == 'pwm':
-        with open('gpdTIP_pwm.R','r') as f:
+        with open('run_scripts/evtr/gpdTIP_pwm.R','r') as f:
             RCodeLib = f.read()
     else:
         raise NotImplementedError()

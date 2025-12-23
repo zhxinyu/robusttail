@@ -349,7 +349,7 @@ def estimate_tail_probability_D2_chi2_only(input_data: np.ndarray,
                                           alpha: float,
                                           random_state: int,
                                           bootstrapping_size: int,
-                                          right_end_point: float) -> typing.List[float]:
+                                          right_endpoint: float) -> typing.List[float]:
     """
     Estimate tail probabilities using both rectangular and ellipsoidal constraints.
 
@@ -376,7 +376,7 @@ def estimate_tail_probability_D2_chi2_only(input_data: np.ndarray,
         Random seed for reproducibility.
     bootstrapping_size: int
         Size of the bootstrap samples.
-    right_end_point: float
+    right_endpoint: float
         Right end point of probability distribution.
     Returns
     -------
@@ -402,7 +402,7 @@ def estimate_tail_probability_D2_chi2_only(input_data: np.ndarray,
         right_end_point_objective=right_end_point_objective,
         g_ellipsoidal_dimension=g_ellipsoidal_dimension,
         bootstrapping_size=bootstrapping_size, 
-        bootstrapping_seed=7*random_state+1, is_max=is_max, right_end_point=right_end_point) for is_max in [False, True]]
+        bootstrapping_seed=7*random_state+1, is_max=is_max, right_endpoint=right_endpoint) for is_max in [False, True]]
     
     return tail_probability_estimates
 

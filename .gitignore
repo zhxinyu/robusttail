@@ -24,3 +24,6 @@ gitignore_files/**
 debug.R
 pg20250622.ipynb
 main.py
+.DS_Store
+latex
+pyrightconfig.json

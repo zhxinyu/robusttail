@@ -47,18 +47,18 @@ if __name__ == "__main__":
     c = - 0.5
     for quantile in quantiles:
         raw_results = []
-        for right_end_point in right_end_points:
+        for right_endpoint in right_end_points:
             lhs = genpareto.ppf(q=float(quantile),  c=c, loc=0, scale=1)
             pool_param_list = [(genpareto.rvs(size=500, c=c, loc=0, scale=1), lhs, right_end_point_objective, kwargs | 
-                                {"right_end_point": right_end_point}) for _ in range(200)]
+                                {"right_endpoint": right_endpoint}) for _ in range(200)]
             with Pool() as pool:
                 bootstrap_results = pool.map(_parallel_run, pool_param_list)
-            raw_result = [[float(quantile), right_end_point, idx] + bootstrap_result for idx, bootstrap_result in enumerate(bootstrap_results)]
+            raw_result = [[float(quantile), right_endpoint, idx] + bootstrap_result for idx, bootstrap_result in enumerate(bootstrap_results)]
             raw_results.extend(raw_result)
             print(pd.DataFrame(raw_result).mean(axis=0).to_frame().T)
-            df = pd.DataFrame(raw_result, columns=['quantile', 'right_end_point', 'bootstrap_idx', 'lb', 'ub'])
+            df = pd.DataFrame(raw_result, columns=['quantile', 'right_endpoint', 'bootstrap_idx', 'lb', 'ub'])
 
-        bootstrap_results_df = pd.DataFrame(raw_results, columns=['quantile', 'right_end_point', 'bootstrap_idx', 'lb', 'ub'])
+        bootstrap_results_df = pd.DataFrame(raw_results, columns=['quantile', 'right_endpoint', 'bootstrap_idx', 'lb', 'ub'])
         bootstrap_results_df.to_csv(f'/Users/sam/ws/robusttail/run_realdata_result/real_bound_support_{quantile}.csv', index=False)
 
     # read all csv files in the directory and concatenate them into one csv file
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # df.loc[mask, 'lb'] = 1
     # df.loc[mask, 'ub'] = 0
 
-    grouped = df.groupby(by=["quantile", "right_end_point"])
+    grouped = df.groupby(by=["quantile", "right_endpoint"])
 
     coverage_rate_mean = grouped.apply(
         lambda group: np.mean(group['lb'].le(1-group.name[0]) & \
@@ -147,17 +147,17 @@ if __name__ == "__main__":
         
     def get_table_latex(df_analysis):
         df_analysis = df_analysis.reset_index()
-        drop_rows = df_analysis.right_end_point.isin([1.9, 2.01])
+        drop_rows = df_analysis.right_endpoint.isin([1.9, 2.01])
         df_analysis = df_analysis[~drop_rows]
 
         for row in df_analysis.itertuples():
-            row_in_latex = " & ".join([number_to_latex(row.right_end_point, 'D'), number_to_latex(row.cp, 'D'), number_to_latex(row.lb, 'E'),
+            row_in_latex = " & ".join([number_to_latex(row.right_endpoint, 'D'), number_to_latex(row.cp, 'D'), number_to_latex(row.lb, 'E'),
                         number_to_latex(row.ub, 'E'), number_to_latex(row.width, 'E')])
             row_in_latex = " & " + row_in_latex + " \\\\"
             row_in_latex = row_in_latex.replace("inf", "\\infty")
-            if row.right_end_point == 1.91:
+            if row.right_endpoint == 1.91:
                 row_in_latex =f"\\multirow{{10}}{{*}}{{$P(X\\geq q_{{{row.quantile}}})$}}" + row_in_latex
-            if row.right_end_point == np.inf:
+            if row.right_endpoint == np.inf:
                 row_in_latex += "\\hline"
             print(row_in_latex)
 
@@ -179,8 +179,8 @@ if __name__ == "__main__":
 
     df_plot = df_plot.reset_index()
     inf_replacement = 2.12
-    df_plot['right_end_point_numeric'] = df_plot['right_end_point'].replace(np.inf, inf_replacement).astype(float)
-    drop_rows = df_plot.right_end_point.isin([1.9, 2.01])
+    df_plot['right_end_point_numeric'] = df_plot['right_endpoint'].replace(np.inf, inf_replacement).astype(float)
+    drop_rows = df_plot.right_endpoint.isin([1.9, 2.01])
     df_plot = df_plot[~drop_rows]
 
     quantiles = ["0.95", "0.99", "0.995"]

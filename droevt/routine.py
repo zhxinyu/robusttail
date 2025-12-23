@@ -16,7 +16,7 @@ def _optimization_plain_chi_square(data: np.ndarray,
                                    bootstrapping_seed: int,
                                    alpha: float,
                                    num_multi_threshold: int,
-                                   right_end_point: float=np.inf) -> float:
+                                   right_endpoint: float=np.inf) -> float:
     """
     Perform optimization with plain chi-square constraints.
 
@@ -44,7 +44,7 @@ def _optimization_plain_chi_square(data: np.ndarray,
         Significance level.
     num_multi_threshold : int
         Number of multiple thresholds.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
 
     Returns
@@ -64,7 +64,7 @@ def _optimization_plain_chi_square(data: np.ndarray,
                         h=objective_function,
                         g_Es=moment_constraint_functions,
                         mu_value=mu, Sigma=Sigma, radius=radius,
-                        right_end_point=right_end_point)
+                        right_endpoint=right_endpoint)
 
 def _optimization_monotone_chi_square(data: np.ndarray,
                                       threshold: float,
@@ -76,7 +76,7 @@ def _optimization_monotone_chi_square(data: np.ndarray,
                                       bootstrapping_seed: int,
                                       alpha: float,
                                       num_multi_threshold: int,
-                                      right_end_point: float=np.inf) -> float:
+                                      right_endpoint: float=np.inf) -> float:
     """
     Perform optimization with monotone chi-square constraints.
 
@@ -104,7 +104,7 @@ def _optimization_monotone_chi_square(data: np.ndarray,
         Significance level.
     num_multi_threshold : int
         Number of multiple thresholds.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
     Returns
     -------
@@ -132,7 +132,7 @@ def _optimization_monotone_chi_square(data: np.ndarray,
                         h=objective_function,
                         g_Es=moment_constraint_functions,
                         mu_value=mu, Sigma=Sigma, radius=radius,
-                        right_end_point=right_end_point)
+                        right_endpoint=right_endpoint)
 
 def _optimization_convex_chi_square(data: np.ndarray,
                                 threshold: float,
@@ -144,7 +144,7 @@ def _optimization_convex_chi_square(data: np.ndarray,
                                 bootstrapping_seed: int,
                                 alpha: float,
                                 num_multi_threshold: int,
-                                right_end_point: float=np.inf) -> float:
+                                right_endpoint: float=np.inf) -> float:
     """
     Perform optimization with convex chi-square constraints.
 
@@ -172,7 +172,7 @@ def _optimization_convex_chi_square(data: np.ndarray,
         Significance level.
     num_multi_threshold : int
         Number of multiple thresholds.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
     Returns
     -------
@@ -207,7 +207,7 @@ def _optimization_convex_chi_square(data: np.ndarray,
                         h=objective_function,
                         g_Es=moment_constraint_functions,
                         mu_value=mu, Sigma=Sigma, radius=radius,
-                        right_end_point=right_end_point)
+                        right_endpoint=right_endpoint)
 
 def _optimization_plain_kolmogorov(data: np.ndarray,
                                    threshold: float,
@@ -216,7 +216,7 @@ def _optimization_plain_kolmogorov(data: np.ndarray,
                                    bootstrapping_seed: int,
                                    alpha: float,
                                    num_multi_threshold: int,
-                                   right_end_point: float=np.inf) -> float:
+                                   right_endpoint: float=np.inf) -> float:
     """
     Optimization with plain Kolmogorov-Smirnov constraints.
 
@@ -238,7 +238,7 @@ def _optimization_plain_kolmogorov(data: np.ndarray,
         Significance level.
     num_multi_threshold : int
         Number of multiple thresholds.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
     Returns
     -------
@@ -267,7 +267,7 @@ def _optimization_plain_kolmogorov(data: np.ndarray,
                         h=new_objective_function,
                         g_Rs=constraint_functions,
                         mu_lb_value=mu_lb_value, mu_ub_value=mu_ub_value,
-                        right_end_point=right_end_point)
+                        right_endpoint=right_endpoint)
 
 
 def _optimization_monotone_kolmogorov(data: np.ndarray,
@@ -277,7 +277,7 @@ def _optimization_monotone_kolmogorov(data: np.ndarray,
                                       bootstrapping_seed: int,
                                       alpha: float,
                                       num_multi_threshold: int,
-                                      right_end_point: float=np.inf) -> float:
+                                      right_endpoint: float=np.inf) -> float:
     """
     Optimization with monotone Kolmogorov-Smirnov constraints.
 
@@ -299,7 +299,7 @@ def _optimization_monotone_kolmogorov(data: np.ndarray,
         Significance level.
     num_multi_threshold : int
         Number of multiple thresholds.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
     Returns
     -------
@@ -337,7 +337,7 @@ def _optimization_monotone_kolmogorov(data: np.ndarray,
                         h=new_objective_function,
                         g_Rs=constraint_functions,
                         mu_lb_value=mu_lb_value, mu_ub_value=mu_ub_value,
-                        right_end_point=right_end_point)
+                        right_endpoint=right_endpoint)
 
 
 def _optimization_convex_kolmogorov(data: np.ndarray,
@@ -347,7 +347,7 @@ def _optimization_convex_kolmogorov(data: np.ndarray,
                                     bootstrapping_seed: int,
                                     alpha: float,
                                     num_multi_threshold: int,
-                                    right_end_point: float=np.inf) -> float:
+                                    right_endpoint: float=np.inf) -> float:
     """
     Optimization with convex Kolmogorov-Smirnov constraints.
 
@@ -369,7 +369,7 @@ def _optimization_convex_kolmogorov(data: np.ndarray,
         Significance level.
     num_multi_threshold : int
         Number of multiple thresholds.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
     Returns
     -------
@@ -414,7 +414,7 @@ def _optimization_convex_kolmogorov(data: np.ndarray,
                         h=new_objective_function,
                         g_Rs=constraint_functions,
                         mu_lb_value=mu_lb_value, mu_ub_value=mu_ub_value,
-                        right_end_point=right_end_point)
+                        right_endpoint=right_endpoint)
 
 
 def optimization_with_rectangular_constraint(D: int, input_data: np.ndarray,
@@ -422,7 +422,7 @@ def optimization_with_rectangular_constraint(D: int, input_data: np.ndarray,
                                              alpha: float,
                                              left_end_point_objective: float, right_end_point_objective: float,
                                              bootstrapping_size: int, bootstrapping_seed: int,
-                                             right_end_point: float=np.inf,
+                                             right_endpoint: float=np.inf,
                                              is_max: bool = True) -> float:
     """
     Perform optimization with rectangular constraint.
@@ -445,7 +445,7 @@ def optimization_with_rectangular_constraint(D: int, input_data: np.ndarray,
         Size of bootstrap samples.
     bootstrapping_seed : int
         Seed for random number generation in bootstrapping.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
     is_max : bool, optional
         Whether the objective function is maximized.
@@ -496,7 +496,7 @@ def optimization_with_rectangular_constraint(D: int, input_data: np.ndarray,
                                           bootstrapping_seed=bootstrapping_seed,
                                           alpha=alpha,
                                           num_multi_threshold=num_multi_threshold,
-                                          right_end_point=right_end_point) for threshold in thresholds]))
+                                          right_endpoint=right_endpoint) for threshold in thresholds]))
     if not is_max:
         value = min(max(- value, 0), 1) 
     return value
@@ -507,7 +507,7 @@ def optimization_with_ellipsodial_constraint(D: int, input_data: np.ndarray,
                                              left_end_point_objective: float, right_end_point_objective: float,
                                              g_ellipsoidal_dimension: int,
                                              bootstrapping_size: int, bootstrapping_seed: int,
-                                             right_end_point: float = np.inf,
+                                             right_endpoint: float = np.inf,
                                              is_max: bool = True, ) -> float:
     """
     Optimization with ellipsoidal constraint.
@@ -532,7 +532,7 @@ def optimization_with_ellipsodial_constraint(D: int, input_data: np.ndarray,
         Size of bootstrap samples.
     bootstrapping_seed : int
         Seed for random number generation in bootstrapping.
-    right_end_point : float
+    right_endpoint : float
         Right end point of probability distribution.
     is_max : bool, optional
         Whether the objective function is maximized.
@@ -600,7 +600,7 @@ def optimization_with_ellipsodial_constraint(D: int, input_data: np.ndarray,
                                           bootstrapping_seed=bootstrapping_seed,
                                           alpha=alpha,
                                           num_multi_threshold=num_multi_threshold,
-                                          right_end_point=right_end_point) for threshold, g_Es, mu, Sigma in zip(thresholds, g_EsList, muList, SigmaList)])
+                                          right_endpoint=right_endpoint) for threshold, g_Es, mu, Sigma in zip(thresholds, g_EsList, muList, SigmaList)])
                                           )
     if not is_max:
         value = min(max(- value, 0), 1)

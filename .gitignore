@@ -22,8 +22,11 @@ gitignore_files/**
 .RData
 .RData.lock
 debug.R
-pg20250622.ipynb
+*.ipynb
+*.csv
+*.html
 main.py
 .DS_Store
 latex
 pyrightconfig.json
+experiments/raw_output

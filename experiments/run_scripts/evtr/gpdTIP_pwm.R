@@ -99,7 +99,7 @@ gpdTIP <- function(data, lhs, rhs, conf = .95, u=NULL) {
         return(gradientpGPD(x=rhs-u, xi=shape, beta=scale) - gradientpGPD(x=lhs-u, xi=shape, beta=scale))
     }
 	
-	Ubd <- asymptoticCIforGPD_delta(fitGPD, h, hGrad, verbose = FALSE)
+	Ubd <- asymptoticCIforGPD_delta(fitGPD, h, hGrad, alpha = 1 - conf, verbose = FALSE)
 
 	return(list(CI=Ubd))
 }

@@ -1,9 +1,7 @@
-.ipynb_checkpoints/*
-*/.ipynb_checkpoints/*
+.ipynb_checkpoints/
 __pycache__
 .DS_Store
 */*.aux
-*/*.pdf
 */*.ps
 */*.log
 */*.dvi
@@ -13,7 +11,6 @@ __pycache__
 .vscode
 .lintr
 *.code-workspace
-pg.ipynb
 .env
 gitignore_files/**
 *.synctex.gz
@@ -21,12 +18,13 @@ gitignore_files/**
 .cursor
 .RData
 .RData.lock
-debug.R
 *.ipynb
 *.csv
 *.html
-main.py
-.DS_Store
+/*.R
+/*.pdf
+/*.py
 latex
+robustTailTableLatex
 pyrightconfig.json
 experiments/raw_output

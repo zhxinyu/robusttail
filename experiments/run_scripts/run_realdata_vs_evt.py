@@ -16,33 +16,7 @@ logger = logging.getLogger(__name__)
 
 scale = 1
 
-def get_data():
-    raw_ndk = ""
-    with open('/Users/sam/ws/robusttail/experiments/input_data/cmt/raw_data/jan76_dec20.ndk') as f:
-        raw_ndk = f.read()
-
-    raw_ndk = raw_ndk.rstrip("\n").split("\n")
-    num_events = len(raw_ndk)//5
-
-    events_raw = []
-    for num_iter in range(num_events):
-        # date: 1,6-15
-        # location: 1,57-80
-        # exponent: 4, 1-2
-        # scalar moment: 5, 50-56
-        # Reference: https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/allorder.ndk_explained
-        # Mw = 2/3 * (lgM0  - 16.1),
-        # Reference: https://www.globalcmt.org/CMTsearch.html
-        an_event = raw_ndk[num_iter * 5 : num_iter * 5 + 5]
-        date = an_event[0][5:16].strip()
-        location = an_event[0][56:81].strip()
-        exponent = float(an_event[3][0:2].strip())
-        scalar = float(an_event[4][49:57].strip())
-        mw = float(2/3* (np.log10(scalar) + exponent - 16.1))
-        events_raw.append([date, location, scalar, exponent, mw])
-    df = pd.DataFrame(events_raw, columns=pd.Index(["date", "location", "scalar", "exponent", "Mw"])).set_index('date')
-    df.loc[:, 'location'] = df['location'].str.replace(',', '').str.replace(' ', '_').str.upper()
-    return df
+from experiments.input_data.cmt.parse_script import parse_ndk
 
 def _parallel_run(pool_param: tuple):
     method, input_data, lhs, right_end_point_objective, kwargs, alpha = pool_param
@@ -64,7 +38,7 @@ def _parallel_run(pool_param: tuple):
     return results
 
 def run_different_threshold_percentages():
-    df = get_data()
+    df = parse_ndk()
 
     alpha=0.05
     right_end_point_objective=np.inf
@@ -124,7 +98,7 @@ def run_different_threshold_percentages():
         print(df.to_markdown())
 
 def run_different_critical_values():
-    df = get_data()
+    df = parse_ndk()
 
     alpha=0.05
     right_end_point_objective=np.inf
@@ -182,7 +156,7 @@ def run_different_critical_values():
             print(df)
 
 def run_different_confidence_levels():
-    df = get_data()
+    df = parse_ndk()
 
     alphas = np.linspace(0.01, 0.1, 10).tolist()[::-1]
     right_end_point_objective=np.inf
@@ -245,7 +219,7 @@ def run_bootstrap_estimation():
     # variation: number of bootstrap samples (50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150)
     #            for each bootstrap sample, vary the critical value list(np.arange(0.990, 0.999, 0.001)) + list(np.arange(0.9991, 0.9995, 0.0001))
 
-    df = get_data()
+    df = parse_ndk()
 
     alpha = 0.05
     right_end_point_objective=np.inf

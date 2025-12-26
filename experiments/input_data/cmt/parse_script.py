@@ -3,14 +3,15 @@ import pandas as pd
 import os
 
 
-def parse_ndk():    
+def parse_ndk():
     raw_ndk = ""
     with open(f'{os.path.dirname(__file__)}/raw_data/jan76_dec20.ndk') as f:
         raw_ndk = f.read()
 
     raw_ndk = raw_ndk.rstrip("\n").split("\n")
 
-    assert len(raw_ndk) % 5 == 0, "The number of lines in the raw_ndk file is not divisible by 5"
+    if len(raw_ndk) % 5 != 0:
+        raise ValueError("The number of lines in the raw_ndk file is not divisible by 5")
 
     num_events = len(raw_ndk)//5
 
@@ -21,17 +22,17 @@ def parse_ndk():
         # exponent: 4, 1-2
         # scalar moment: 5, 50-56
         # Reference: https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/allorder.ndk_explained
-        # 
-        # Mw = 2/3 * (lgM0  - 16.1), 
+        # Mw = 2/3 * (lgM0  - 16.1),
         # Reference: https://www.globalcmt.org/CMTsearch.html
-        an_event = raw_ndk[num_iter*5:num_iter*5+5]
+        an_event = raw_ndk[num_iter * 5 : num_iter * 5 + 5]
         date = an_event[0][5:16].strip()
         location = an_event[0][56:81].strip()
         exponent = float(an_event[3][0:2].strip())
         scalar = float(an_event[4][49:57].strip())
         mw = float(2/3* (np.log10(scalar) + exponent - 16.1))
         events_raw.append([date, location, scalar, exponent, mw])
-    df = pd.DataFrame(events_raw, columns=["date", "location", "scalar", "exponent", "Mw"]).set_index('date')
+    df = pd.DataFrame(events_raw, columns=pd.Index(["date", "location", "scalar", "exponent", "Mw"])).set_index('date')
+    df.loc[:, 'location'] = df['location'].str.replace(',', '').str.replace(' ', '_').str.upper()
     return df
 
 if __name__ == "__main__":

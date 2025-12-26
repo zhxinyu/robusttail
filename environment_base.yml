@@ -1,0 +1,28 @@
+name: rs
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - r-base=4.2
+  - numpy
+  - pandas
+  - scipy
+  - pip
+  - ipykernel
+  - rpy2
+  - pip:
+      - cffi
+      - jinja2
+      - markupsafe
+      - matplotlib
+      - mosek
+      - pillow
+      - pycparser
+      - pytz
+      - rpy2
+      - seaborn
+      - tabulate
+      - tqdm
+      - tzdata
+      - tzlocal

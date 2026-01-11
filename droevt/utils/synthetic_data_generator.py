@@ -19,6 +19,12 @@ import numpy as np
 from scipy.stats import gamma, lognorm, pareto, genpareto
 
 DISTRIBUTION_DEFAULT_PARAMETERS = {
+    "normal_truncated": {
+        "loc": 0,      # mean
+        "scale": 1,     # standard deviation  
+        "a": 0,
+        "b": np.inf
+    },
     "gamma": {
         "a": 0.5,      # shape parameter
         "scale": 1     # scale parameter
@@ -60,8 +66,8 @@ def generate_synthetic_data(data_module: object,
         Array of randomly generated samples
     """
     return data_module.rvs(size=data_size,
-                          random_state=random_state, 
-                          **param_dict)
+                           random_state=random_state, 
+                           **param_dict)
 
 def get_quantile(distribution, probability: float, params: dict) -> float:
     """

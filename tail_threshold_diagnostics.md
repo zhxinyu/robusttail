@@ -65,39 +65,36 @@ Below we illustrate the diagnostics for several benchmark distributions.
 ### Diagnostic Examples
 
 <table>
-<tr>
-<td>
+  <tr>
+    <td>
 
-**Example 1 — Gamma Distribution (Light Tail)**  
-
+**Example 1 — Gamma (Light Tail)**  
+<br>
 <img src="droevt/utils/tail_diagnostics_gamma.png" width="420"/>
 
 </td>
 <td>
 
-**Example 2 — Lognormal Distribution (Sub-Exponential Tail)**  
-
+**Example 2 — Lognormal (Sub-Exponential Tail)**  
+<br>
 <img src="droevt/utils/tail_diagnostics_lognorm.png" width="420"/>
 
 </td>
-</tr>
-
-<tr>
 <td>
 
-**Example 3 — Pareto Distribution (Heavy Tail)**  
-
+**Example 3 — Pareto (Heavy Tail)**  
+<br>
 <img src="droevt/utils/tail_diagnostics_pareto.png" width="420"/>
 
 </td>
 <td>
 
 **Example 4 — Seismic Magnitudes (CMT Data)**  
-
+<br>
 <img src="droevt/utils/tail_diagnostics_cmt.png" width="420"/>
 
 </td>
-</tr>
+  </tr>
 </table>
 
 ### Interpretation
@@ -148,9 +145,12 @@ discards data and increases variance.
 
 ```python
 import matplotlib.pyplot as plt
-import tail_diagnostics
+import importlib
+import droevt.utils.tail_diagnostics
+importlib.reload(droevt.utils.tail_diagnostics)
 
-from scipy.stats import gamma, lognorm, pareto, genpareto
+
+from scipy.stats import gamma, lognorm, pareto, genpareto, truncnorm
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -165,7 +165,7 @@ random_seed = 20220222
 data_module_map = {"gamma": gamma,
                    "lognorm": lognorm,
                    "pareto": pareto,
-                   "genpareto": genpareto}
+                   }
 meta_data_dict = {"data_size": data_size}
 data_sources = ["gamma", "lognorm", "pareto"]
 for data_source in data_sources:
@@ -177,15 +177,15 @@ for data_source in data_sources:
                                            data_param_dict, 
                                            meta_data_dict['data_size'], 
                                            meta_data_dict['random_state'])
-    output_dict = tail_diagnostics.plot_tail_diagnostics(x)
+    output_dict = droevt.utils.tail_diagnostics.plot_tail_diagnostics(x, 
+                                                                      data_source=(data_source, data_param_dict))
     plt.show()
 
 from experiments.input_data.cmt.parse_script import parse_ndk
 
 df = parse_ndk()
 x = df.loc[:, 'Mw'].values
-plot_tail_diagnostics(x)
-
+droevt.utils.tail_diagnostics.plot_tail_diagnostics(x, data_source=('cmt', {}))
 plt.show()
 ```
 

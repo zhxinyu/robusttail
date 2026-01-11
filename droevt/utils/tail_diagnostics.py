@@ -76,8 +76,9 @@ procedure.
 from typing import Any
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
-from scipy.ndimage import gaussian_filter1d
+from scipy.stats import gaussian_kde, norm, lognorm, gamma, pareto
+
+from .synthetic_data_generator import DISTRIBUTION_DEFAULT_PARAMETERS
 
 ############################################################
 # Helper: compute mean–excess function   e(u) = E[X − u | X > u]
@@ -113,67 +114,280 @@ def mean_excess(x: np.ndarray, thresholds: np.ndarray) -> np.ndarray:
 
     return np.array(me)
 
+def gamma_density_derivatives(x, a, scale):
+    """
+    Compute Gamma density f(x), first derivative f'(x),
+    and second derivative f''(x).
+    """
+    x = np.asarray(x, dtype=float)
+
+    # density
+    f = gamma.pdf(x, a=a, scale=scale)
+
+    # first derivative
+    f1 = f * ((a - 1.0) / x - 1.0 / scale)
+
+    # second derivative
+    f2 = f * (((a - 1.0) / x - 1.0 / scale)**2 - (a - 1.0) / x**2)
+
+    return f, f1, f2
+
+def lognormal_density_derivatives(x, loc, s):
+    """
+    Lognormal density and derivatives where:
+
+        log X ~ N(loc, s^2)
+
+    Parameters
+    ----------
+    x : array-like
+        Evaluation points (x > 0).
+    loc : float
+        Mean of log X (mu).
+    s : float
+        Standard deviation of log X (sigma).
+
+    Returns
+    -------
+    f : ndarray
+        Density f(x).
+    f1 : ndarray
+        First derivative f'(x).
+    f2 : ndarray
+        Second derivative f''(x).
+    """
+    x = np.asarray(x, dtype=float)
+
+    if np.any(x <= 0):
+        raise ValueError("Lognormal density is only defined for x > 0.")
+
+    # SciPy mapping: s = sigma, scale = exp(mu), loc = 0
+    f = lognorm.pdf(x, s=s, scale=np.exp(loc), loc=0.0)
+
+    A = -1.0 - (np.log(x) - loc) / s**2
+
+    f1 = f * A / x
+    f2 = f * (A**2 - A - 1.0 / s**2) / x**2
+
+    return f, f1, f2
+
+def pareto_density_derivatives(x, b, scale=1.0):
+    """
+    Pareto density and derivatives where:
+
+        f(x) = b * scale^b / x^(b+1),   x >= scale
+
+    This matches scipy.stats.pareto with loc = 0.
+
+    Parameters
+    ----------
+    x : array-like
+        Evaluation points.
+    b : float
+        Shape (tail index), b > 0.
+    scale : float, optional
+        Lower bound (x_m), scale > 0.
+
+    Returns
+    -------
+    f : ndarray
+        Density f(x).
+    f1 : ndarray
+        First derivative f'(x).
+    f2 : ndarray
+        Second derivative f''(x).
+    """
+    x = np.asarray(x, dtype=float)
+
+    if scale <= 0:
+        raise ValueError("scale must be positive.")
+    if b <= 0:
+        raise ValueError("b must be positive.")
+
+    # density (SciPy-consistent)
+    f = pareto.pdf(x, b=b, scale=scale, loc=0.0)
+
+    # enforce support explicitly
+    mask = x >= scale
+
+    f1 = np.zeros_like(f)
+    f2 = np.zeros_like(f)
+
+    f1[mask] = - (b + 1.0) * f[mask] / x[mask]
+    f2[mask] = (b + 1.0) * (b + 2.0) * f[mask] / x[mask]**2
+
+    return f, f1, f2
+
 ############################################################
 # Helper: compute tail density + smoothed derivatives
 ############################################################
 def tail_density_and_derivatives(
-    x: np.ndarray,
+    x_train: np.ndarray,
     candidate_thresholds: np.ndarray,
-    bw_factor: float = 2.0,
-    num_grid: int = 400
+    num_grid: int = 200,
+    bw_method="scott"
 ):
     """
-    Estimate the kernel density and its smoothed first and second derivatives
-    on a uniform evaluation grid, then interpolate the results at the candidate
-    threshold locations.
+    Estimate a univariate probability density and its first and second
+    derivatives for positive, right-tailed data using kernel density
+    estimation (KDE) in log-space.
+
+    This routine is designed for medium-to-heavy-tailed distributions
+    (e.g., Pareto, lognormal, gamma, and other fat-tailed events), where direct
+    KDE in the original data space can suffer from boundary bias and severe
+    instability in higher-order derivatives.
+
+    The method proceeds as follows:
+
+    1. Log-transform the data:
+       Let Y = log(X), where X > 0 is the original random variable.
+
+    2. Fit a Gaussian KDE to Y:
+       Denote by g(y) the estimated density of Y.
+
+    3. Compute analytic first and second derivatives of g(y) using the
+       closed-form derivatives of the Gaussian kernel.
+
+    4. Transform the density and its derivatives back to the original
+       x-space via exact change-of-variables formulas.
+
+    Mathematical formulation
+    -------------------------
+    Let g(y) be the density of Y = log(X). The density of X is
+
+        f(x) = g(log x) / x ,    x > 0.
+
+    Its first derivative is
+
+        f'(x) = [ g'(log x) - g(log x) ] / x^2 ,
+
+    and its second derivative is
+
+        f''(x) = [ g''(log x) - 3 g'(log x) + 2 g(log x) ] / x^3 .
+
+    These identities are exact consequences of the chain rule and hold
+    independently of the choice of kernel or bandwidth.
+
+    Working in log-space greatly improves numerical stability when estimating
+    f'(x) and f''(x), particularly in the tail region, and avoids boundary
+    artifacts caused by Gaussian kernels leaking mass below the natural
+    lower support of X.
 
     Parameters
     ----------
-    x : np.ndarray
-        1D array of full data sample.
+    x_train : np.ndarray
+        One-dimensional array of strictly positive observations drawn from
+        the target distribution.
+
     candidate_thresholds : np.ndarray
-        Tail points where density and derivatives should be reported.
-    bw_factor : float, optional
-        Gaussian smoothing sigma (in grid index units). Typical values 1–3.
+        One-dimensional array of positive values at which the density and
+        its derivatives are evaluated (e.g., candidate tail thresholds).
+
     num_grid : int, optional
-        Number of grid points for KDE evaluation (default 400).
+        Number of equally spaced grid points in log-space used for KDE
+        evaluation and differentiation. Default is 400.
+
+    bw_method : str, float, or callable, optional
+        Bandwidth specification passed to `scipy.stats.gaussian_kde`.
+        Common choices include "scott", "silverman", a scalar multiplier,
+        or a callable. Smoother bandwidths are generally required for
+        stable estimation of second derivatives.
 
     Returns
     -------
-    grid : np.ndarray
-        Uniform evaluation grid.
+    x_grid : np.ndarray
+        Monotone increasing grid in the original data space on which the
+        density and derivatives are evaluated.
+
     dens_tail : np.ndarray
-        KDE evaluated at candidate_thresholds.
+        Estimated density f(x) evaluated at `candidate_thresholds`.
+
     d1_tail : np.ndarray
-        First derivative evaluated at candidate_thresholds.
+        Estimated first derivative f'(x) evaluated at
+        `candidate_thresholds`.
+
     d2_tail : np.ndarray
-        Second derivative evaluated at candidate_thresholds.
+        Estimated second derivative f''(x) evaluated at
+        `candidate_thresholds`.
+
+    Notes
+    -----
+    - This function assumes X is strictly positive. Zero or negative values
+      must be removed or shifted prior to use.
+    - Second-derivative estimates are inherently noisy; meaningful inference
+      should rely on persistence (e.g., sustained positivity) or confidence
+      bands rather than pointwise sign checks.
+    - For Pareto-type tails, convexity of the true density (f''(x) > 0)
+      is expected asymptotically; deviations in the estimate reflect finite
+      sample variability and smoothing bias.
+
+    References
+    ----------
+    - Silverman, B. W. (1986). *Density Estimation for Statistics and Data
+      Analysis*. Chapman & Hall.
+    - Wand, M. P., & Jones, M. C. (1995). *Kernel Smoothing*. Chapman & Hall.
+    - Embrechts, P., Klüppelberg, C., & Mikosch, T. (1997). *Modelling
+      Extremal Events*. Springer.
     """
 
-    x = np.asarray(x)
-    candidate_thresholds = np.sort(np.asarray(candidate_thresholds))
+    x_train = np.asarray(x_train, dtype=float)
+    candidate_thresholds = np.sort(np.asarray(candidate_thresholds, dtype=float))
 
-    # ---- uniform grid over data range ----
-    grid = np.linspace(candidate_thresholds.min() * 0.9, candidate_thresholds.max() * 1.1, num_grid)
+    # ---- positivity check ----
+    if np.any(x_train <= 0):
+        raise ValueError("log-space KDE requires strictly positive data.")
 
-    kde = gaussian_kde(x)
+    # ---- log-transform ----
+    y_train = np.log(x_train)
+    y_thresh = np.log(candidate_thresholds)
 
-    # ---- KDE on grid ----
-    density = kde(grid)
+    # ---- KDE in log-space ----
+    kde = gaussian_kde(y_train, bw_method=bw_method)
 
-    # ---- smooth BEFORE differentiation ----
-    density_s = gaussian_filter1d(density, sigma=bw_factor)
+    # Effective bandwidth in log-space
+    h2 = float(kde.covariance.squeeze())
+    h = np.sqrt(h2)
+    n = y_train.size
 
-    # ---- derivatives wrt x ----
-    d1 = np.gradient(density_s, grid)
-    d2 = np.gradient(d1, grid)
+    # ---- uniform grid in log-space ----
+    x_min = candidate_thresholds.min() * 0.95
+    x_max = candidate_thresholds.max() * 1.05
+    y_grid = np.linspace(np.log(x_min), np.log(x_max), num_grid)
 
-    # ---- interpolate results at tail thresholds ----
-    dens_tail = np.interp(candidate_thresholds, grid, density_s)
-    d1_tail = np.interp(candidate_thresholds, grid, d1)
-    d2_tail = np.interp(candidate_thresholds, grid, d2)
+    # ---- density and derivatives in log-space ----
+    def _g(y):
+        return kde.evaluate(y)
 
-    return grid, dens_tail, d1_tail, d2_tail
+    def _g1(y):
+        y = np.asarray(y)
+        z = (y[None, :] - y_train[:, None]) / h
+        phi = norm.pdf(z)
+        return (1.0 / (n * h**3)) * np.sum((y_train[:, None] - y[None, :]) * phi, axis=0)
+
+    def _g2(y):
+        y = np.asarray(y)
+        z = (y[None, :] - y_train[:, None]) / h
+        phi = norm.pdf(z)
+        return (1.0 / (n * h**5)) * np.sum(((y_train[:, None] - y[None, :])**2 - h**2) * phi, axis=0)
+
+    g_val = _g(y_grid)
+    g1_val = _g1(y_grid)
+    g2_val = _g2(y_grid)
+
+    # ---- transform back to x-space ----
+    x_grid = np.exp(y_grid)
+
+    f_val = g_val / x_grid
+    f1_val = (g1_val - g_val) / x_grid**2
+    f2_val = (g2_val - 3*g1_val + 2*g_val) / x_grid**3
+
+    # ---- interpolate at thresholds ----
+
+    dens_tail = np.interp(y_thresh, y_grid, f_val)
+    d1_tail   = np.interp(y_thresh, y_grid, f1_val)
+    d2_tail   = np.interp(y_thresh, y_grid, f2_val)
+
+    return x_grid, dens_tail, d1_tail, d2_tail
 
 def monotonicity_score(grid, density):
     """
@@ -255,9 +469,10 @@ def compute_tail_scores(x, candidate_thresholds):
 ############################################################
 def plot_tail_diagnostics(
     x: np.ndarray,
-    num_thresholds: int = 20,
+    data_source: tuple[str, dict[str, float]],
+    num_thresholds: int = 30,
     tail_fraction: float = 0.45,
-    region_name: str = ""
+    region_name: str = "",
 ) -> dict[str, Any]:
     """
     Generate a diagnostic plot suite for threshold selection in tail analysis.
@@ -289,15 +504,32 @@ def plot_tail_diagnostics(
     # Tail sample for shape diagnostics (at most 50 points, evenly sampled if more)
     tail_start = int((1 - tail_fraction) * n)
     candidate_thresholds = x[tail_start:]
+    indices = range(len(candidate_thresholds))
+
     if candidate_thresholds.size > num_thresholds:
         # Sample evenly: take indices [0, step, 2*step, ..., -1] where step = size/50
-        indices = np.linspace(0, candidate_thresholds.size - 1, 50, dtype=int)
+        indices = np.linspace(0, candidate_thresholds.size - 1, num_thresholds, dtype=int)
         candidate_thresholds = candidate_thresholds[indices]
+    indices = tail_start + np.array(indices)
 
     # ====== Compute objects ======
     me_vals = mean_excess(x, candidate_thresholds)
     _, density, first_derivative, second_derivative = tail_density_and_derivatives(x, candidate_thresholds)
-    
+
+    plot_theoretical_density = False
+    if data_source[0] in ["gamma", "lognorm", "pareto"]:
+        if data_source[0] == "gamma":
+            (d_th, d1_th, d2_th) = gamma_density_derivatives(x, **data_source[1])
+        elif data_source[0] == "lognorm":
+            (d_th, d1_th, d2_th) = lognormal_density_derivatives(x, **data_source[1])
+        else:
+            (d_th, d1_th, d2_th) = pareto_density_derivatives(x, **data_source[1])
+
+        d_th = d_th[indices]
+        d1_th = d1_th[indices]
+        d2_th = d2_th[indices]        
+        plot_theoretical_density = True
+
     # Compute tail scores (monotonicity and curvature stability)
     # mono_scores, conv_scores = compute_tail_scores(x, candidate_thresholds)
 
@@ -307,8 +539,6 @@ def plot_tail_diagnostics(
     threshold_percentages = 100 * np.searchsorted(x, candidate_thresholds, side='right') / n
 
     # ====== Plot ======
-    # fig, axs = plt.subplots(3, 2, figsize=(12, 10))
-    # ax_me, ax_pdf, ax_d1, ax_d2, ax_scores, ax_conv = axs.flatten()
 
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     ax_me, ax_pdf, ax_d1, ax_d2 = axs.flatten()
@@ -320,25 +550,33 @@ def plot_tail_diagnostics(
     ax_me.set_ylabel("$E[X-u \\,|\\,X>u]$")
 
     # --- 2. Tail Density ---
-    ax_pdf.plot(threshold_percentages, density, lw=2)
-    # ax_pdf.plot(candidate_thresholds_percentages, density_s, lw=2, linestyle='--', label="Smoothed KDE")
+    ax_pdf.plot(threshold_percentages, density, lw=2, label="Kernel Density Estimate")
     ax_pdf.set_title("Tail Density Estimate")
     ax_pdf.set_xlabel("Threshold Percentile (%)")
-    ax_pdf.set_ylabel("Density")
     # ax_pdf.legend()
 
     # --- 3. First Derivative ---
-    ax_d1.plot(threshold_percentages, first_derivative, lw=2)
+    ax_d1.plot(threshold_percentages, first_derivative, lw=2, label="Kernel Density Estimate")
     ax_d1.axhline(0, color="k", ls="--", alpha=0.5)
     ax_d1.set_title("First Derivative  (Monotonicity)")
     ax_d1.set_xlabel("Threshold Percentile (%)")
 
     # --- 4. Second Derivative ---
-    ax_d2.plot(threshold_percentages, second_derivative, lw=2)
+    ax_d2.plot(threshold_percentages, second_derivative, lw=2, label="Kernel Density Estimate")
     ax_d2.axhline(0, color="k", ls="--", alpha=0.5)
     ax_d2.set_title("Second Derivative  (Curvature)")
     ax_d2.set_xlabel("Threshold Percentile (%)")
     
+    if plot_theoretical_density:
+        ax_pdf.plot(threshold_percentages, d_th, lw=2, linestyle='--', color='orange', label="Theoretical") # type: ignore
+        ax_pdf.legend(loc='best')
+        
+        ax_d1.plot(threshold_percentages, d1_th, lw=2, linestyle='--', color='orange', label="Theoretical") # type: ignore
+        ax_d1.legend(loc='best')
+
+        ax_d2.plot(threshold_percentages, d2_th, lw=2, linestyle='--', color='orange', label="Theoretical") # type: ignore
+        ax_d2.legend(loc='best')
+
     # # --- 5. Tail Scores (Monotonicity) ---
     # ax_scores.plot(threshold_percentages, mono_scores, lw=2, label="Monotonicity")
     # ax_scores.set_title("Monotonicity Score")

@@ -26,10 +26,9 @@ qualitative features consistent with the modeling assumptions.
 
 In particular, the module implements:
 
-1. The *mean-excess function*
-   $e(u) = E[X - u | X > u]$
-   whose approximate linearity is a classical indicator of generalized
-   Pareto-type tail behavior.
+1. The *number of exceedances* above each candidate threshold, which helps
+   assess whether there are sufficient data points above the threshold for
+   reliable estimation and calibration.
 
 2. A *kernel density estimate* of the empirical tail, together with smoothed
    estimates of its
@@ -51,7 +50,7 @@ The user supplies:
 
 The diagnostics help identify the *smallest* threshold beyond which:
 
-    (i)  the mean-excess function becomes approximately linear
+    (i)  there are sufficient exceedances for reliable estimation
     (ii) the estimated density is smoothly decreasing
     (iii) the curvature stabilizes and no longer exhibits strong irregularity.
 
@@ -492,9 +491,8 @@ def plot_tail_diagnostics(
     dict
         Dictionary containing:
             - 'thresholds': candidate_thresholds,
-            - 'mean_excess': mean excess evaluated at thresholds,
+            - 'num_exceedances': number of exceedances at each threshold,
             - 'density': smoothed KDE density values,
-            - 'density_s': smoothed KDE density values,
             - 'first_derivative': smoothed first derivative of KDE,
             - 'second_derivative': smoothed second derivative of KDE.
     """
@@ -513,7 +511,8 @@ def plot_tail_diagnostics(
     indices = tail_start + np.array(indices)
 
     # ====== Compute objects ======
-    me_vals = mean_excess(x, candidate_thresholds)
+    # Compute number of exceedances for each threshold
+    num_exceedances = np.array([np.sum(x > threshold) for threshold in candidate_thresholds])
     _, density, first_derivative, second_derivative = tail_density_and_derivatives(x, candidate_thresholds)
 
     plot_theoretical_density = False
@@ -543,11 +542,11 @@ def plot_tail_diagnostics(
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     ax_me, ax_pdf, ax_d1, ax_d2 = axs.flatten()
 
-    # --- 1. Mean Excess Plot ---
-    ax_me.plot(threshold_percentages, me_vals, lw=2)
-    ax_me.set_title("Mean Excess Plot  $e(u)$")
+    # --- 1. Number of Exceedances ---
+    ax_me.plot(threshold_percentages, num_exceedances, lw=2)
+    ax_me.set_title("Number of Exceedances")
     ax_me.set_xlabel("Threshold Percentile (%)")
-    ax_me.set_ylabel("$E[X-u \\,|\\,X>u]$")
+    ax_me.set_ylabel("Number of Exceedances")
 
     # --- 2. Tail Density ---
     ax_pdf.plot(threshold_percentages, density, lw=2, label="Kernel Density Estimate")
@@ -602,7 +601,7 @@ def plot_tail_diagnostics(
                "fig": fig,
                "thresholds": candidate_thresholds,
                "threshold_percentages": threshold_percentages,
-               "mean_excess": me_vals,
+               "num_exceedances": num_exceedances,
                "density": density,
                "first_derivative": first_derivative,
                "second_derivative": second_derivative,

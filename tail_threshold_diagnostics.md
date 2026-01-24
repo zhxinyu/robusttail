@@ -19,13 +19,15 @@ To address this transparently, we provide a set of diagnostic tools ([drovt.util
 
 Given a dataset $x_1,\dots,x_n$, the module evaluates a grid of candidate thresholds and computes the following quantities.
 
-### Mean-Excess Function
+### Number of Exceedances
+
+For each candidate threshold $u$, we compute the number of data points exceeding $u$:
 
 $$
-e(u)=\mathbb{E}[X-u \mid X>u].
+N(u) = \sum_{i=1}^n \mathbb{I}(x_i > u).
 $$
 
-Approximate linearity of $e(u)$ is the classical indicator of generalized Pareto-type tail behavior.
+This diagnostic helps assess whether there are sufficient data points above the threshold for reliable estimation and calibration of the moment constraints.
 
 ### Tail Density Estimate and Derivatives
 
@@ -47,7 +49,7 @@ These plots allow the analyst to examine whether the tail behaves as theoretical
 
 ## How These Plots Are Used
 
-We recommend choosing the smallest threshold `a` such that:
+We recommend choosing a threshold `a` such that:
 
 1. the estimated tail density decays smoothly  
 2. the curvature stabilizes and no longer oscillates erratically  
@@ -108,11 +110,10 @@ choosing it too high reduces the amount of usable data.
 
 The diagnostics therefore provide complementary perspectives on tail stability:
 
-• The **mean-excess curve** shows how the expected overshoot behaves as the
-threshold increases. Although this plot has classical EVT roots, we do not
-use it to justify a generalized Pareto model. Instead, we treat it as an
-exploratory tool: when the curve transitions from unstable to qualitatively
-regular behaviour, this suggests the onset of a tail regime.
+• The **number of exceedances** shows how many data points remain above each
+candidate threshold. This helps ensure there are sufficient observations for
+reliable estimation and calibration of the moment constraints, while also
+indicating the effective sample size available for tail inference.
 
 • The **tail density estimate** indicates whether the right-tail becomes
 smoothly decreasing beyond a candidate threshold.
@@ -135,8 +136,8 @@ This marks the onset of the region where tail behaviour becomes structurally
 stable.
 
 In our empirical work, we therefore select the threshold `a` near the
-**70th percentile of the data**, representing the smallest value for which tail
-behaviour appears stable across all diagnostics. Choosing smaller thresholds
+**70th percentile of the data**, representing a value for which tail
+behaviour appears stable across all diagnostics. Choosing lower thresholds
 risks violating tail assumptions, while choosing much larger thresholds
 discards data and increases variance.
 

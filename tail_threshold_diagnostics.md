@@ -4,14 +4,13 @@
 
 In our distributionally robust tail estimation framework, the parameter `a` specifies the onset of the *tail region* — that is, the point beyond which the distribution is assumed to satisfy the geometric shape constraints used in the DRO formulation. This plays the same conceptual role as the threshold in classical peaks-over-threshold extreme-value analysis.
 
-A key practical concern raised by the reviewer is:
+Specifically, there is a tradeoff that:
 
-> How should the tail threshold `a` be selected in a principled, data-driven manner?
+- If `a` is chosen too small, the tail geometry may not yet hold.  
 
-If `a` is chosen too small, the assumed tail structure may not yet hold.  
-If `a` is chosen too large, too few tail points remain for reliable inference.
+- If `a` is chosen too large, too few exceedance observations are available for reliable calibration of the parameters in the DRO constraints
 
-To address this transparently, we provide a set of diagnostic tools ([drovt.utils.tail_diagnostics](droevt/utils/tail_diagnostics.py)) that allow the analyst to visually assess the point at which the tail behavior begins to stabilize.
+To address this transparently, we provide a set of diagnostic tools ([drovt.utils.tail_diagnostics](droevt/utils/tail_diagnostics.py)) that allow the analyst to visually assess the point at which the tail behavior begins to stabilize, and moreover assess the tail geometry to be used.
 
 --- 
 
@@ -31,19 +30,19 @@ This diagnostic helps assess whether there are sufficient data points above the 
 
 ### Tail Density Estimate and Derivatives
 
-A kernel density estimate is computed over the tail region.  We then numerically evaluate:
+Using kernel methods, we estimate:
 
-- the first derivative (monotonicity)
-- the second derivative (curvature)
+- the first derivative (for checking monotonicity)
 
-after mild smoothing to stabilize numerical noise.
+- the second derivative (for checking convexity)
 
-These plots allow the analyst to examine whether the tail behaves as theoretically expected:
+These plots allow the analyst to examine whether, and how, the tail behaves for using the DRO formulation:
 
 | Property                | Diagnostic                         | Interpretation                                     |
 |-------------------------|------------------------------------|----------------------------------------------------|
-| Decreasing tail         | 1st derivative < 0                 | The tail density decays monotonically              |
-| Convex tail curvature   | 2nd derivative consistently > 0    | The tail becomes convex, consistent with geometric-type tails |
+| Decreasing tail         | 1st derivative consistently < 0                 | The tail density decays monotonically              |
+| Convex tail   | 2nd derivative consistently > 0    | The tail density becomes convex |
+
 
 ---
 
@@ -51,14 +50,7 @@ These plots allow the analyst to examine whether the tail behaves as theoretical
 
 We recommend choosing a threshold `a` such that:
 
-1. the estimated tail density decays smoothly  
-2. the curvature stabilizes and no longer oscillates erratically  
-
-This mirrors established practice in EVT: the goal is not to recover a unique “true threshold,” but to
-identify a stable tail regime in which model assumptions are credible. Choosing a larger threshold
-typically increases robustness to model misspecification (since the tail is cleaner), but reduces the
-effective sample size and increases estimation variance. The diagnostics therefore help the analyst
-balance this conservativeness-variance trade-off in a transparent way.
+the estimated tail density decays smoothly  and if the first derivative stabilizes (i.e., no longer oscillates erratically) and is negative, then we use $\mathcal P^1(a)$ as the geometric constraint, i.e., density decreasingness. If in addition the second derivative stabilizes (i.e., no longer oscillates erratically) and is positive, then we use $\mathcal P^2(a)$ as the geometric constraint, i.e., density decreasingness. and convexity.
 
 # Examples
 
@@ -101,43 +93,33 @@ Below we illustrate the diagnostics for several benchmark distributions.
 
 ### Interpretation
 
-The purpose of these plots is not to assume a particular parametric tail
-model, but rather to assess whether the empirical tail behaviour has entered
-a stable regime. In our framework, the threshold `a` marks the point beyond
+The purpose of these plots is to guide the selection of `a', which is the threshold beyond
 which the geometric tail constraints used in the DRO formulation are intended
-to apply. Choosing `a` too low risks including non-tail behaviour, while
-choosing it too high reduces the amount of usable data.
+to apply. Choosing `a` too low risks including non-tail behavior, while
+choosing it too high reduces the amount of usable data. 
 
-The diagnostics therefore provide complementary perspectives on tail stability:
+The diagnostics include:
 
-• The **number of exceedances** shows how many data points remain above each
-candidate threshold. This helps ensure there are sufficient observations for
-reliable estimation and calibration of the moment constraints, while also
-indicating the effective sample size available for tail inference.
+- The **number of exceedances** shows how many data points are above each candidate threshold. We suggest selecting a threshold with at least 20 observations above it, so that there are sufficient observations for reliable calibration of the auxiliary moment constraints.
 
-• The **tail density estimate** indicates whether the right-tail becomes
-smoothly decreasing beyond a candidate threshold.
+- The **tail density estimate** shows the density estimate at each candidate threshold, and helps visualize whether the right-tail is smoothly decreasing beyond a candidate threshold.
 
-• The **first derivative** highlights whether the decay rate stabilizes
-(i.e., whether oscillations or reversals in monotonicity disappear).
+- The **first derivative** shows the estimate of the first derivative of density at each candidate threshold, and helps visualize whether the density derivative stabilizes (i.e., no oscillations between positive and negative), and also whether it is negative. If so, density decreasingness can be used as geometric constraint.
 
-• The **second derivative** helps identify whether the curvature settles
-into a consistent pattern rather than fluctuating between convex and
-concave regions.
+- The **second derivative** shows the estimate of the second derivative of density at each candidate threshold, and helps visualize whether the density's second derivative stabilizes (i.e., no oscillations between positive and negative), and also whether it is positive. If so, density decreasingness and convexity can be used as geometric constraint.
 
 Across these examples, a common pattern emerges. At moderate quantiles
-(around the 65–75% range), the diagnostics begin to stabilize:
+(around the 65–75% range), the diagnostics begin to stabilize in that:
 
 - the estimated tail density decays smoothly  
 - the first derivative remains consistently negative  
-- the second derivative stops oscillating and settles into a stable sign  
+- the second derivative stops oscillating (if it happens at smaller quantiles) and becomes consistently positive
 
-This marks the onset of the region where tail behaviour becomes structurally
-stable.
+This marks the onset of the region where tail behavior becomes stable and follows our geometric constraint of density decreasingness and convexity.
 
 In our empirical work, we therefore select the threshold `a` near the
 **70th percentile of the data**, representing a value for which tail
-behaviour appears stable across all diagnostics. Choosing lower thresholds
+behavior appears stable and satisfies our geometric constraint across all diagnostics. Choosing lower thresholds
 risks violating tail assumptions, while choosing much larger thresholds
 discards data and increases variance.
 

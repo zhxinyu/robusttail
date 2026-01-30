@@ -4,9 +4,6 @@ from multiprocessing import Pool
 from scipy.stats import zscore
 import sys
 import os
-import math
-sys.path.append("/Users/sam/ws/robusttail")
-sys.path.append("/Users/sam/ws/robusttail/experiments/run_scripts")
 os.environ['R_HOME'] = sys.executable.replace('bin/python', 'lib/R')
 import tail_probability.benchmark_tail_probability_estimation as btpe
 import tail_probability.tail_probability_estimation as tpe
@@ -69,10 +66,8 @@ def run_different_threshold_percentages():
             # input_data = np.random.choice(input_data_full, size=data_sample, replace=False)
             input_data = input_data_full
             print(f"Running {region} with length {len(input_data)}")
-            # methods = ['opt', 'pot_bt', 'pl', 'bayesian', 'pwm']
-            methods = ['opt']
-            columns = ["(2, CHI)"]
-            # columns = ["(2, CHI)", "pot_bt", "pl", "bayesian", "pwm"]
+            methods = ['opt', 'pot_bt', 'pl', 'bayesian', 'pwm']
+            columns = ["(2, CHI)", "pot_bt", "pl", "bayesian", "pwm"]
             quantile = 0.999
             setup = []
             lhs = np.quantile(input_data_full, q=quantile)
@@ -92,9 +87,7 @@ def run_different_threshold_percentages():
                                                     name="threshold_percentage")
                                     )
             table_per_region[region] = df_result
-        # print as csv
         df = pd.concat(table_per_region, axis=0)
-        df.to_csv(f"/Users/sam/ws/robusttail/real_data_vs_evt_threshold_percentage_{data_sample}.csv")
         print(df.to_markdown())
 
 def run_different_critical_values():
@@ -150,10 +143,7 @@ def run_different_critical_values():
             table_per_region[region] = df_result
         # print as csv
         df = pd.concat(table_per_region, axis=0)
-        df.to_csv(f"/Users/sam/ws/robusttail/real_data_vs_evt_critical_values_{data_sample}.csv")
-        # Print DataFrame as scientific notation with 2 decimals (e.g. 1.23E+04)
-        with pd.option_context('display.float_format', '{:.2E}'.format):
-            print(df)
+        print(df)
 
 def run_different_confidence_levels():
     df = parse_ndk()
@@ -206,12 +196,8 @@ def run_different_confidence_levels():
             df_result = pd.DataFrame(all_results, columns=pd.Index(["(2, CHI)", "pot_bt", "pl", "bayesian", "pwm"]),
                                      index=pd.Index([np.round(1 - alpha, 2) for alpha in alphas], name="confidence_level"))
             table_per_region[region] = df_result
-        # print as csv
         df = pd.concat(table_per_region, axis=0)
-        df.to_csv(f"/Users/sam/ws/robusttail/real_data_vs_evt_confidence_levels_{data_sample}.csv")
-        # Print DataFrame as scientific notation with 2 decimals (e.g. 1.23E+04)
-        with pd.option_context('display.float_format', '{:.2E}'.format):
-            print(df)
+        print(df)
 
 def run_bootstrap_estimation():
 
@@ -263,23 +249,13 @@ def run_bootstrap_estimation():
                 results = pool.map(_parallel_run, setup)
             # reshape to len(quantiles) x len(methods) x repeats
             all_results = np.array(results).reshape(len(quantiles), repeats, len(methods), 2)
-            # true_value = 1 - np.array(quantiles)
-            # hit_case = (all_results[..., 0] <= true_value[:, np.newaxis, np.newaxis]) * (all_results[..., 1] >= true_value[:, np.newaxis, np.newaxis])
-            # width = all_results[..., 1] - all_results[..., 0]
-            # width_mean, width_std = np.nanmean(width, axis=1), np.nanstd(width, axis=1, ddof=1)
-            # hit_rate, hit_rate_std = hit_case.astype(float).mean(axis=1), hit_case.astype(float).std(axis=1, ddof=1))
-            
-            # print as csv
-            import pickle
-            with open(f"/Users/sam/ws/robusttail/real_data_vs_evt_bootstrap_results_{region}_{data_sample}.pkl", 'wb') as f:
-                pickle.dump(all_results, f)
             print(all_results)
 
 if __name__ == "__main__":
     import argparse
     # implement argparse to choose the function to run
     parser = argparse.ArgumentParser(description='Run real data vs evt estimation')
-    parser.add_argument('--function', type=str, default='run_bootstrap_estimation_v3', help='Function to run')
+    parser.add_argument('--function', type=str, default='run_different_threshold_percentages', help='Function to run')
     args = parser.parse_args()
     logger.info(f"Running {args.function}")
     if args.function == 'run_different_threshold_percentages':

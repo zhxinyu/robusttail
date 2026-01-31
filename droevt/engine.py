@@ -10,6 +10,7 @@ The module uses MOSEK Fusion for optimization modeling and solving.
 """
 
 from typing import List
+import mosek
 import mosek.fusion as mf
 import numpy as np
 from scipy.special import comb
@@ -585,12 +586,26 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
     infinite_constraint(M, H, G_Es, G_Rs, right_endpoint)
 
     ## solve!
-    # This solver logic attempts to solve the optimization problem and handles various scenarios:
-    # 1. It first tries to solve normally.
-    # 2. If that fails, it adjusts solver parameters and tries again.
-    # 3. It checks solution quality and warns if the relative gap is too large.
-    # 4. The result is clamped between 0 and 1 because it represents a probability.
-    def attempt_solve():
+    # Solver flow: (1) try normal solve; (2) on failure, re-raise license errors so they
+    # fail fast; (3) otherwise retry once with adjusted params; (4) result is clamped to [0, 1].
+    def _is_mosek_license_error(exc: Exception) -> bool:
+        """True if the exception is a Mosek license error (e.g. missing license file)."""
+        msg = str(exc).lower()
+        if "license" in msg or "1008" in msg:
+            return True
+        if isinstance(exc, mosek.Error) and getattr(exc, "err", None) == 1008:
+            return True
+        cause = getattr(exc, "__cause__", None)
+        if cause is not None and isinstance(cause, Exception):
+            return _is_mosek_license_error(cause)
+        return False
+
+    def _reraise_if_license(exc: Exception) -> None:
+        """Re-raise so the process fails with a clear error if this is a Mosek license error."""
+        if _is_mosek_license_error(exc):
+            raise
+
+    def attempt_solve() -> float:
         M.solve()
         # PrimalFeasible but not PrimalAndDualFeasible occurs when:
         # 1. The primal problem has a feasible solution
@@ -599,44 +614,44 @@ def optimization(D_riser_number: int = None, eta: float = None, eta_lb: float = 
         # However, due to numerical issues, we may still get a PrimalFeasible status
         # We accept this solution but it may be far from optimal
         # This typically happens with ill-conditioned problems
-        if M.getProblemStatus() in [mf.ProblemStatus.PrimalAndDualFeasible, 
-                                    mf.ProblemStatus.PrimalFeasible]:
+        if M.getProblemStatus() in [mf.ProblemStatus.PrimalAndDualFeasible, mf.ProblemStatus.PrimalFeasible]:
             value = M.primalObjValue()
             sign = 1 if value >= 0 else -1
-            return sign * min(max(sign * value, 0), 1)  # The absolute value is clamped between 0 and 1
-        else:
-            logger.warning(bcolors.WARNING + 
-                           f"Problem status: {M.getProblemStatus()}. Returning 0." + 
-                           bcolors.ENDC)
-            return 0
+            return sign * min(max(sign * value, 0), 1)
+        logger.warning(
+            bcolors.WARNING + f"Problem status: {M.getProblemStatus()}. Returning 0." + bcolors.ENDC
+        )
+        return 0
+
+    def _retry_solve() -> float:
+        """Retry once with adjusted solver parameters; check solution quality and return result."""
+        M.setSolverParam("intpntSolveForm", "dual")
+        M.setSolverParam("simReformulation", "on")
+        M.setSolverParam("simDualCrash", 1.0)
+        M.setSolverParam("simScaling", "moderate")
+        M.acceptedSolutionStatus(mf.AccSolutionStatus.Optimal)
+        M.acceptedSolutionStatus(mf.AccSolutionStatus.NearOptimal)
+
+        result = attempt_solve()
+        if M.getProblemStatus() == mf.ProblemStatus.PrimalAndDualFeasible:
+            rel_gap = abs(M.primalObjValue() - M.dualObjValue()) / abs(M.primalObjValue())
+            if rel_gap > 1e-6:
+                logger.warning(
+                    bcolors.WARNING + f"Solution may be suboptimal. Relative gap: {rel_gap:.2e}" + bcolors.ENDC
+                )
+        return result
 
     try:
         return attempt_solve()
-    except:
-        logger.warning(bcolors.WARNING + 
-                       f"Initial solve failed. Problem status: {M.getProblemStatus()}. Retrying with adjusted parameters." + 
-                       bcolors.ENDC)
-        
-        M.setSolverParam("intpntSolveForm", "dual")    # Try dual form
-        M.setSolverParam("simReformulation", "on")     # Enable reformulation
-        M.setSolverParam("simDualCrash", 1.0)          # Enable dual crash - Helps find initial basis by solving dual problem first
-        M.setSolverParam("simScaling", "moderate")     # Moderate scaling
-        
-        # Set accepted solution statuses
-        M.acceptedSolutionStatus(mf.AccSolutionStatus.Optimal)
-        M.acceptedSolutionStatus(mf.AccSolutionStatus.NearOptimal)
-        
+    except Exception as e:
+        _reraise_if_license(e)
+        logger.warning(
+            bcolors.WARNING
+            + f"Initial solve failed. Problem status: {M.getProblemStatus()}. Retrying with adjusted parameters."
+            + bcolors.ENDC
+        )
         try:
-            result = attempt_solve()
-            
-            # Check solution quality if feasible
-            if M.getProblemStatus() == mf.ProblemStatus.PrimalAndDualFeasible:
-                rel_gap = abs(M.primalObjValue() - M.dualObjValue()) / abs(M.primalObjValue())
-                if rel_gap > 1e-6:
-                    logger.warning(bcolors.WARNING + 
-                        f"Solution may be suboptimal. Relative gap: {rel_gap:.2e}" + 
-                        bcolors.ENDC)
-            
-            return result
-        except:
-            return 0
+            return _retry_solve()
+        except Exception as e2:
+            _reraise_if_license(e2)
+            raise

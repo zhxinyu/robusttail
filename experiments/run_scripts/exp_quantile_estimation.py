@@ -17,6 +17,7 @@ stringToDataModule = {"gamma": gamma,
 
 def run(poolParam):
     dataDistribution, metaDataDict, random_state = poolParam
+    metaDataDict = metaDataDict.copy()
     metaDataDict["random_state"] = random_state
     return qe.quantileEstimationPerRep(
         stringToDataModule[dataDistribution], **metaDataDict)

@@ -35,6 +35,7 @@ def _parallelRun(pool_param: tuple) ->  typing.List[float]:
     _, string_to_data_module = base_meta_data_dict()
 
     _data_distribution, _meta_data_dict, _random_state = pool_param
+    _meta_data_dict = _meta_data_dict.copy()
     _meta_data_dict["random_state"] = _random_state
     return tpe.estimate_tail_probability_with_data_module(
         string_to_data_module[_data_distribution], **_meta_data_dict)
@@ -116,6 +117,26 @@ def base_runner_tail_probability(
                     logger.info(" ".join([f"{val:>12.2E}" for val in result]))
         except Exception as e:
             logger.error("Exception: %s", e)
+
+def exp_tail_probability_quick_run():
+    exp_name = inspect.currentframe().f_code.co_name # type: ignore
+    logger.info("Experiment name: %s", exp_name)
+    data_distributions = ['gamma', 'lognorm', 'pareto', 'genpareto']
+    data_sizes = [500]
+    # Single threshold percentage and multi-threshold percentages
+    threshold_percentages = [0.7]
+    percentage_lhs_values = [0.99]
+    true_value = 0.005
+    n_experiment_repetitions = 1
+    random_seed = 20220222
+    base_runner_tail_probability(exp_name=exp_name,
+                data_distributions=data_distributions, 
+                data_sizes=data_sizes, 
+                percentage_lhs_values=percentage_lhs_values, 
+                threshold_percentages=threshold_percentages, 
+                true_value=true_value, 
+                random_seed=random_seed, 
+                n_experiment_repetitions=n_experiment_repetitions)
 
 def exp_tail_probability_thresholds():
     # Single threshold percentage and multi-threshold percentages
@@ -234,8 +255,9 @@ def main():
     parser.add_argument(
         "--experiment",
         type=str,
-        default="thresholds",
+        default="quick_run",
         choices=[
+            "quick_run",
             "thresholds", 
             "percentage_lhs", 
             "scarce_data", 
@@ -245,7 +267,9 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.experiment == "thresholds":
+    if args.experiment == "quick_run":
+        exp_tail_probability_quick_run()
+    elif args.experiment == "thresholds":
         exp_tail_probability_thresholds()
     elif args.experiment == "percentage_lhs":
         exp_tail_probability_percentage_lhs()

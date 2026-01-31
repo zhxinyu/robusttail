@@ -2,12 +2,14 @@
 
 ## Table of contents
 
+- [Quick start](#quick-start)
 - [Experiments](#experiments)
   - [Setup](#setup)
   - [Scripts](#scripts)
   - [Summary](#summary)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
+  - [Platform support](#platform-support)
   - [Environment Setup](#environment-setup)
     - [Option 1: Using Conda Environment (Recommended)](#option-1-using-conda-environment-recommended)
     - [Option 2: Manual Installation](#option-2-manual-installation)
@@ -17,6 +19,17 @@
   - [Troubleshooting](#troubleshooting)
 
 ---
+
+## Quick start
+
+After installation, from the repo root run a short tail-probability experiment:
+
+```bash
+cd experiments/run_scripts
+PYTHONPATH="$(git rev-parse --show-toplevel)" python exp_tail_probability.py --experiment quick_run
+```
+
+(If not in a git repo, set `PYTHONPATH` to the project root instead.)
 
 ## Experiments
 
@@ -54,6 +67,7 @@ Runs **distributionally robust (DRO) tail probability estimation** on synthetic 
 
 | Option | Description |
 | :----- | :---------- |
+| `--experiment quick_run` | Short run (1 rep) for a quick sanity check (default). |
 | `--experiment thresholds` | Vary threshold percentages (single and multi-threshold). |
 | `--experiment percentage_lhs` | Vary left quantile level (0.9–0.99) in the objective function. |
 | `--experiment scarce_data` | Scarce synthetic data (n=30). |
@@ -67,14 +81,14 @@ PYTHONPATH=/path/to/robusttail python exp_tail_probability.py --experiment thres
 
 ---
 
-#### 2. `exp_quantitle_estimation.py` — DRO quantile estimation
+#### 2. `exp_quantile_estimation.py` — DRO quantile estimation
 
 Runs **DRO quantile estimation** (ellipsoidal ambiguity) on synthetic data: gamma, lognorm, pareto; multiple threshold percentages (single and multi).
 
 **How to run:**
 
 ```bash
-PYTHONPATH=/path/to/robusttail python exp_quantitle_estimation.py
+PYTHONPATH=/path/to/robusttail python exp_quantile_estimation.py
 ```
 
 ---
@@ -86,7 +100,7 @@ Compares **DRO tail probability** with **EVT-based methods** on parsed CMT (eart
 | Option | Description |
 | :----- | :---------- |
 | `--function run_different_threshold_percentages` | Vary threshold percentage (default). |
-| `--function run_different_critical_values` | Vary critical values. |
+| `--function run_different_exceedance_level` | Vary exceedance level. |
 | `--function run_different_confidence_levels` | Vary confidence levels. |
 | `--function run_bootstrap_estimation` | Bootstrap estimation. |
 
@@ -133,7 +147,7 @@ PYTHONPATH=/path/to/robusttail python exp_benchmark_run.py --exp real
 | Script | Purpose |
 | :----- | :------ |
 | `exp_tail_probability.py` | DRO tail probability (synthetic + real); `--experiment` chooses which experiment. |
-| `exp_quantitle_estimation.py` | DRO quantile estimation on synthetic data; no args. |
+| `exp_quantile_estimation.py` | DRO quantile estimation on synthetic data; no args. |
 | `exp_cmt.py` | CMT real data: DRO vs EVT; `--function` chooses which experiment. |
 | `exp_bound_support.py` | Bounded-support (Gen Pareto) tail probability; no args. |
 | `exp_benchmark_run.py` | EVT benchmark (synthetic or real); `--exp` required: `synthetic` or `real`. |
@@ -146,20 +160,32 @@ PYTHONPATH=/path/to/robusttail python exp_benchmark_run.py --exp real
 
 - [Conda](https://docs.conda.io/en/latest/miniconda.html) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 - Python 3.12
-- R (for R-based experiments)
+- R
+
+### Platform support
+
+- **Supported / tested**: **macOS (ARM64)** and **Linux via WSL (Ubuntu/WSL2)**.
+- **Windows**: **not supported natively** at the moment. Please use **WSL**.
 
 ### Environment Setup
 
 #### Option 1: Using Conda Environment (Recommended)
 
-1. **Create the conda environment from the base environment file:**
+1. **Create the conda environment from a platform-specific file (recommended):**
+   - **Linux / WSL:** `conda env create -f environment_linux.yml`
+   - **macOS (ARM64):** `conda env create -f environment_osx-arm64.yml`
+
+2. **(Optional) Use an explicit lockfile (most reproducible):**
+
+   This pins exact builds and is best for CI / exact reproduction on the **same platform**.
 
    ```bash
-   conda env create -f environment_base.yml
+   conda create -n rs --file explicit-linux.txt
    ```
 
-2. **Or use the platform-specific file:**
-   - **macOS (ARM64):** `conda env create -f environment_osx-arm64.yml`
+   ```bash
+   conda create -n rs --file explicit-osx-arm64.txt
+   ```
 
 3. **Activate the environment:**
 
@@ -186,10 +212,10 @@ conda create -n rs python=3.12
 conda activate rs
 
 # Install core dependencies
-conda install -c conda-forge numpy pandas scipy r-base=4.2 rpy2
+conda install -c conda-forge numpy pandas scipy r-base=4.2 rpy2 r-matrix r-mgcv r-ks
 
 # Install Python packages via pip
-pip install matplotlib mosek
+pip install mosek==11.0.20
 ```
 
 ### R Installation
@@ -204,8 +230,7 @@ After obtaining the license:
 
 1. Download the license file.
 2. Place it in:
-   - **Linux/macOS:** `~/.mosek/mosek.lic`
-   - **Windows:** `%USERPROFILE%\mosek\mosek.lic`
+   - **Linux / macOS:** `~/.mosek/mosek.lic`
 3. Verify installation:
 
    ```python
@@ -218,7 +243,7 @@ After obtaining the license:
 Test that everything is installed correctly:
 
 ```bash
-python -c "import numpy, pandas, scipy, matplotlib, mosek, rpy2; print('All packages imported successfully')"
+python -c "import numpy, pandas, scipy, mosek, rpy2; print('All packages imported successfully')"
 ```
 
 ### Troubleshooting

@@ -50,7 +50,7 @@ These plots allow the analyst to examine whether, and how, the tail behaves for 
 
 We recommend choosing a threshold `a` such that:
 
-the estimated tail density decays smoothly  and if the first derivative stabilizes (i.e., no longer oscillates erratically) and is negative, then we use $\mathcal P^1(a)$ as the geometric constraint, i.e., density decreasingness. If in addition the second derivative stabilizes (i.e., no longer oscillates erratically) and is positive, then we use $\mathcal P^2(a)$ as the geometric constraint, i.e., density decreasingness. and convexity.
+If the estimated tail density decays smoothly and the first derivative stabilizes (i.e., no longer oscillates erratically) and is negative, then we use $\mathcal P^1(a)$ as the geometric constraint, i.e., density decreasingness. If in addition the second derivative stabilizes (i.e., no longer oscillates erratically) and is positive, then we use $\mathcal P^2(a)$ as the geometric constraint, i.e., density decreasingness and convexity.
 
 # Examples
 
@@ -93,10 +93,7 @@ Below we illustrate the diagnostics for several benchmark distributions.
 
 ### Interpretation
 
-The purpose of these plots is to guide the selection of `a', which is the threshold beyond
-which the geometric tail constraints used in the DRO formulation are intended
-to apply. Choosing `a` too low risks including non-tail behavior, while
-choosing it too high reduces the amount of usable data. 
+The purpose of these plots is to guide the selection of `a`, which is the threshold beyond which the geometric tail constraints used in the DRO formulation are intended to apply. Choosing `a` too low risks including non-tail behavior, while choosing it too high reduces the amount of usable data. 
 
 The diagnostics include:
 
@@ -104,12 +101,11 @@ The diagnostics include:
 
 - The **tail density estimate** shows the density estimate at each candidate threshold, and helps visualize whether the right-tail is smoothly decreasing beyond a candidate threshold.
 
-- The **first derivative** shows the estimate of the first derivative of density at each candidate threshold, and helps visualize whether the density derivative stabilizes (i.e., no oscillations between positive and negative), and also whether it is negative. If so, density decreasingness can be used as geometric constraint.
+- The **first derivative** shows the estimate of the first derivative of density at each candidate threshold, and helps visualize whether the density derivative stabilizes (i.e., no oscillations between positive and negative), and also whether it is negative. If so, and if the right-tail is smoothly decreasing seen from the **tail density estimate**, then we can use density decreasingness as the geometric constraint.
 
-- The **second derivative** shows the estimate of the second derivative of density at each candidate threshold, and helps visualize whether the density's second derivative stabilizes (i.e., no oscillations between positive and negative), and also whether it is positive. If so, density decreasingness and convexity can be used as geometric constraint.
+- The **second derivative** shows the estimate of the second derivative of density at each candidate threshold, and helps visualize whether the density's second derivative stabilizes (i.e., no oscillations between positive and negative), and also whether it is positive. If so, and if the right-tail is smoothly decreasing seen from the **tail density estimate** and the density derivative stabilizes and is negative seen from the **first derivative**, then we can use density decreasingness and convexity as the geometric constraint.
 
-Across these examples, a common pattern emerges. At moderate quantiles
-(around the 65–75% range), the diagnostics begin to stabilize in that:
+Across these examples, a common pattern emerges. At moderate quantiles (around the 65–75% range), the diagnostics begin to stabilize in that:
 
 - the estimated tail density decays smoothly  
 - the first derivative remains consistently negative  
@@ -117,11 +113,7 @@ Across these examples, a common pattern emerges. At moderate quantiles
 
 This marks the onset of the region where tail behavior becomes stable and follows our geometric constraint of density decreasingness and convexity.
 
-In our empirical work, we therefore select the threshold `a` near the
-**70th percentile of the data**, representing a value for which tail
-behavior appears stable and satisfies our geometric constraint across all diagnostics. Choosing lower thresholds
-risks violating tail assumptions, while choosing much larger thresholds
-discards data and increases variance.
+In our examples, we therefore select the threshold `a` near the **70th percentile of the data**, representing a value for which tail behavior appears stable and satisfies our geometric constraint across all diagnostics. Choosing lower thresholds risks violating tail geometric assumptions, while choosing much larger thresholds discards data and increases variance.
 
 <details>
 <summary><strong style="text-decoration: underline; cursor: pointer;">Code Snippet: Generating Tail Diagnostics for Synthetic and Real Data</strong></summary>

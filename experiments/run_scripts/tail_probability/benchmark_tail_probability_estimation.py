@@ -1,5 +1,6 @@
 import typing
 import pathlib
+import os
 from scipy.stats import gamma
 import rpy2.robjects as ro
 import numpy as np
@@ -7,13 +8,24 @@ from rpy2.robjects import numpy2ri
 from rpy2.robjects.packages import importr
 numpy2ri.activate()
 
-importr('base')
-importr('utils')
-importr('nloptr')
-importr('MASS')
-importr('POT')
-importr('QRM')
-importr('eva')
+def importr_with_install(package):
+    try:
+        return importr(package)
+    except Exception:
+        utils = importr('utils')
+        # Avoid interactive "select a CRAN mirror" prompts by always
+        # providing a default CRAN repo. Override via env var if needed.
+        cran_repo = os.environ.get("R_CRAN_REPO", "https://cloud.r-project.org")
+        utils.install_packages(package, repos=cran_repo)
+        return importr(package)
+
+importr_with_install('base')
+importr_with_install('utils')
+importr_with_install('nloptr')
+importr_with_install('MASS')
+importr_with_install('POT')
+importr_with_install('QRM')
+importr_with_install('eva')
 
 def benchmark_estimate_tail_probability(input_data: np.ndarray, 
                                         left_end_point_objective: float, right_end_point_objective: float,

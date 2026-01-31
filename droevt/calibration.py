@@ -8,6 +8,7 @@ specification using Kolmogorov-Smirnov test.
 The module uses rpy2 to interface with R for kernel density estimation.
 """
 
+import os
 from typing import Union, List
 import random
 import numpy as np
@@ -19,10 +20,21 @@ from rpy2.robjects.packages import importr
 
 numpy2ri.activate()
 # Import R packages
-importr('base')
-importr('utils')
-importr('stats')
-importr('ks')
+def importr_with_install(package):
+    try:
+        return importr(package)
+    except Exception:
+        utils = importr('utils')
+        # Avoid interactive "select a CRAN mirror" prompts by always
+        # providing a default CRAN repo. Override via env var if needed.
+        cran_repo = os.environ.get("R_CRAN_REPO", "https://cloud.r-project.org")
+        utils.install_packages(package, repos=cran_repo)
+        return importr(package)
+
+importr_with_install('base')
+importr_with_install('utils')
+importr_with_install('stats')
+importr_with_install('ks')
 
 def eta_generation(data: np.ndarray,
                    point_estimate: float,

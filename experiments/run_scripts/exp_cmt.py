@@ -90,7 +90,7 @@ def run_different_threshold_percentages():
         df = pd.concat(table_per_region, axis=0)
         print(df.to_markdown())
 
-def run_different_critical_values():
+def run_different_exceedance_level():
     df = parse_ndk()
 
     alpha=0.05
@@ -203,7 +203,7 @@ def run_bootstrap_estimation():
 
     # bootstrap
     # variation: number of bootstrap samples (50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150)
-    #            for each bootstrap sample, vary the critical value list(np.arange(0.990, 0.999, 0.001)) + list(np.arange(0.9991, 0.9995, 0.0001))
+    #            for each bootstrap sample, vary the exceedance level list(np.arange(0.990, 0.999, 0.001)) + list(np.arange(0.9991, 0.9995, 0.0001))
 
     df = parse_ndk()
 
@@ -260,8 +260,8 @@ if __name__ == "__main__":
     logger.info(f"Running {args.function}")
     if args.function == 'run_different_threshold_percentages':
         run_different_threshold_percentages()
-    elif args.function == 'run_different_critical_values':
-        run_different_critical_values()
+    elif args.function == 'run_different_exceedance_level':
+        run_different_exceedance_level()
     elif args.function == 'run_different_confidence_levels':
         run_different_confidence_levels()
     elif args.function == 'run_bootstrap_estimation':

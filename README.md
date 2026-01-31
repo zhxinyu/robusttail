@@ -230,7 +230,7 @@ After obtaining the license:
 
 1. Download the license file.
 2. Place it in:
-   - **Linux / macOS:** `~/.mosek/mosek.lic`
+   - **Linux / macOS:** `~/mosek/mosek.lic`
 3. Verify installation:
 
    ```python

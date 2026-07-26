@@ -36,6 +36,26 @@ importr_with_install('utils')
 importr_with_install('stats')
 importr_with_install('ks')
 
+def _bootstrap_sample_factory(data: np.ndarray, sample_count: int, seed: int):
+    """Return the explicitly selected historical bootstrap sampler.
+
+    ``numpy`` is the library default and reproduces experiments run after the
+    May 2025 calibration refactor. ``python`` reproduces older manuscript
+    experiments that used ``random.choices``.
+    """
+    family = os.environ.get("ROBUSTTAIL_BOOTSTRAP_RNG", "numpy").lower()
+    if family == "numpy":
+        rng = np.random.RandomState(seed)
+        return lambda: rng.choice(data, size=data.shape[0], replace=True)
+    if family == "python":
+        rng = random.Random(seed)
+        return lambda: np.asarray(rng.choices(data, k=sample_count))
+    raise ValueError(
+        "ROBUSTTAIL_BOOTSTRAP_RNG must be either 'numpy' or 'python', "
+        f"not {family!r}"
+    )
+
+
 def eta_generation(data: np.ndarray,
                    point_estimate: float,
                    bootstrapping_flag: bool,
@@ -81,12 +101,13 @@ def eta_generation(data: np.ndarray,
         # 2. Computing the kernel density estimate for each bootstrap sample
         # This gives us a distribution of density estimates that helps quantify uncertainty
         
-        # Set random seed for reproducibility
-        random.seed(bootstrapping_seed)
+        bootstrap_sample = _bootstrap_sample_factory(
+            data, bootstrapping_size, bootstrapping_seed
+        )
         output_list = []
         
         for _ in range(bootstrapping_size):
-            bootstrapping_data = np.random.choice(data, size=data.shape[0], replace=True)
+            bootstrapping_data = bootstrap_sample()
             output_list.append(float(ro.r('''
                 data = c({:})
                 (kdde(x = data, deriv.order = 0, eval.points = {:}))$estimate
@@ -188,9 +209,16 @@ def negative_nu_generation(data: np.ndarray,
     if not bootstrapping:
         return _estimate_negative_nu(data, point_estimate)
     else:
-        np.random.seed(bootstrap_seed)
-        return [_estimate_negative_nu(np.random.choice(data, size=data.shape[0], replace=True), point_estimate) 
-                for _ in range(bootstrap_size)]
+        bootstrap_sample = _bootstrap_sample_factory(
+            data, bootstrap_size, bootstrap_seed
+        )
+        return [
+            _estimate_negative_nu(
+                bootstrap_sample(),
+                point_estimate,
+            )
+            for _ in range(bootstrap_size)
+        ]
 
 def _estimate_negative_nu(data: np.ndarray, point: float) -> float:
     """

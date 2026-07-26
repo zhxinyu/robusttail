@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import numpy as np
 from scipy.stats import chi2, kstwobign
 import logging
@@ -67,6 +68,59 @@ class TestCalibration(unittest.TestCase):
             f"density_at_1: {self.density_at_1:.3f}"
         )
 
+    def test_eta_generation_bootstrap_is_seed_local_and_deterministic(self):
+        data = np.array([1.0, 2.0, 3.0])
+
+        def run_once():
+            with patch.object(
+                droevt.calibration.ro,
+                "r",
+                return_value=[0.0],
+            ) as mocked_r:
+                result = droevt.calibration.eta_generation(
+                    data=data,
+                    point_estimate=2.0,
+                    bootstrapping_flag=True,
+                    bootstrapping_size=4,
+                    bootstrapping_seed=17,
+                )
+            return result, [call.args[0] for call in mocked_r.call_args_list]
+
+        first_result, first_r_inputs = run_once()
+        second_result, second_r_inputs = run_once()
+        self.assertEqual(first_result, second_result)
+        self.assertEqual(first_r_inputs, second_r_inputs)
+        self.assertEqual(len(first_r_inputs), 4)
+
+    def test_bootstrap_rng_family_is_explicit_and_reproduces_both_vintages(self):
+        data = np.array([1.0, 2.0, 3.0])
+        with patch.dict(
+            droevt.calibration.os.environ,
+            {"ROBUSTTAIL_BOOTSTRAP_RNG": "python"},
+        ):
+            python_sample = droevt.calibration._bootstrap_sample_factory(
+                data, sample_count=4, seed=17
+            )()
+        with patch.dict(
+            droevt.calibration.os.environ,
+            {"ROBUSTTAIL_BOOTSTRAP_RNG": "numpy"},
+        ):
+            numpy_sample = droevt.calibration._bootstrap_sample_factory(
+                data, sample_count=4, seed=17
+            )()
+        np.testing.assert_array_equal(python_sample, [2.0, 3.0, 3.0, 1.0])
+        np.testing.assert_array_equal(numpy_sample, [2.0, 3.0, 3.0])
+
+    def test_invalid_bootstrap_rng_family_is_rejected(self):
+        with patch.dict(
+            droevt.calibration.os.environ,
+            {"ROBUSTTAIL_BOOTSTRAP_RNG": "invalid"},
+        ):
+            with self.assertRaisesRegex(ValueError, "numpy.*python"):
+                droevt.calibration._bootstrap_sample_factory(
+                    np.array([1.0]), sample_count=1, seed=1
+                )
+
     def test_eta_specification(self):
         result = droevt.calibration.eta_specification(
             data=self.data,
@@ -118,6 +172,30 @@ class TestCalibration(unittest.TestCase):
             f"density_derivative_at_1: {self.density_derivative_at_1:.3f}, "
             f"diff: {abs(self.density_derivative_at_1 - lower):.3f}"
         )
+
+    def test_negative_nu_bootstrap_is_seed_local_and_deterministic(self):
+        data = np.array([1.0, 2.0, 3.0])
+        with patch.object(
+            droevt.calibration,
+            "_estimate_negative_nu",
+            side_effect=lambda sample, _: float(np.sum(sample)),
+        ):
+            first = droevt.calibration.negative_nu_generation(
+                data=data,
+                point_estimate=2.0,
+                bootstrapping=True,
+                bootstrap_size=4,
+                bootstrap_seed=17,
+            )
+            second = droevt.calibration.negative_nu_generation(
+                data=data,
+                point_estimate=2.0,
+                bootstrapping=True,
+                bootstrap_size=4,
+                bootstrap_seed=17,
+            )
+        self.assertEqual(first, second)
+        self.assertEqual(len(first), 4)
 
     def test_nu_specification(self):
         result = droevt.calibration.nu_specification(

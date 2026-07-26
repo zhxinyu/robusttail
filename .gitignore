@@ -29,3 +29,4 @@ robustTailTableLatex
 pyrightconfig.json
 experiments/raw_output
 experiments/parse_scripts
+experiments/generated/

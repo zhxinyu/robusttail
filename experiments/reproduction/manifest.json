@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "studies": [
+    {
+      "id": "tail_diagnostics",
+      "description": "Four tail-diagnostic examples using the established diagnostic implementation.",
+      "entrypoint": "experiments.reproduction.tail_diagnostics_figure",
+      "displays": [
+        {
+          "latex_label": "fig:tail_diagnostics",
+          "current_display": "Figure 1",
+          "output": "experiments/generated/tail_diagnostics/tail_diagnostics.png"
+        }
+      ]
+    },
+    {
+      "id": "synthetic_threshold_sensitivity",
+      "description": "Synthetic tail-probability and quantile sensitivity to single and multiple thresholds.",
+      "entrypoint": "experiments.reproduction.synthetic_threshold_sensitivity",
+      "displays": [
+        {
+          "latex_label": "tb3_tpe",
+          "current_display": "Table 4.1(a)",
+          "output": "experiments/generated/synthetic_threshold_sensitivity/tail_probability_rows.tex"
+        },
+        {
+          "latex_label": "tb3_qe",
+          "current_display": "Table 4.1(b)",
+          "output": "experiments/generated/synthetic_threshold_sensitivity/quantile_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "synthetic_constraint_comparison",
+      "description": "Synthetic tail-probability comparison across D=0,1,2 KS and chi-square constraint settings.",
+      "entrypoint": "experiments.reproduction.synthetic_constraint_comparison",
+      "displays": [
+        {
+          "latex_label": "tb1_tpe",
+          "current_display": "Table F.1(a)",
+          "output": "experiments/generated/synthetic_constraint_comparison/table_f_1a_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "synthetic_quantile_constraint_comparison",
+      "description": "Synthetic 0.99-quantile comparison across D=0,1,2 chi-square shape constraints.",
+      "entrypoint": "experiments.reproduction.synthetic_quantile_constraint_comparison",
+      "displays": [
+        {
+          "latex_label": "tb2_qe",
+          "current_display": "Table F.1(b)",
+          "output": "experiments/generated/synthetic_quantile_constraint_comparison/table_f_1b_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "gcmt_descriptive_summary",
+      "description": "GCMT regional quantiles, maxima, event counts, and box plots from the curated magnitude samples.",
+      "entrypoint": "experiments.reproduction.gcmt_descriptive_summary",
+      "displays": [
+        {
+          "latex_label": "tb5_real_tb0",
+          "current_display": "Table G.2",
+          "output": "experiments/generated/gcmt_descriptive_summary/table_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "gcmt_dro_tables",
+      "description": "Deterministic DRO tail-probability tables across GCMT thresholds and fixed moment magnitudes.",
+      "entrypoint": "experiments.reproduction.gcmt_dro_tables",
+      "displays": [
+        {
+          "latex_label": "tb5_real_tb1",
+          "current_display": "Table G.1",
+          "output": "experiments/generated/gcmt_dro_tables/table_g_1_rows.tex"
+        },
+        {
+          "latex_label": "tb5_real_tb2",
+          "current_display": "Table G.3",
+          "output": "experiments/generated/gcmt_dro_tables/table_g_3_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "gcmt_sensitivity_figures",
+      "description": "GCMT threshold, exceedance-level, and confidence-level sensitivity using established DRO and EVT estimators.",
+      "entrypoint": "experiments.reproduction.gcmt_sensitivity_figures",
+      "displays": [
+        {
+          "latex_label": "fig:real_data_threshold_sensitivity",
+          "current_display": "Figure 3",
+          "output": "experiments/generated/gcmt_sensitivity_figures/real_data_vs_evt_threshold_percentage.png"
+        },
+        {
+          "latex_label": "fig:real_data_critical_value_sensitivity",
+          "current_display": "Figure 4",
+          "output": "experiments/generated/gcmt_sensitivity_figures/real_data_vs_evt_critical_values.png"
+        },
+        {
+          "latex_label": "fig:real_data_confidence_level_sensitivity",
+          "current_display": "Figure 9",
+          "output": "experiments/generated/gcmt_sensitivity_figures/real_data_vs_evt_confidence_levels.png"
+        }
+      ]
+    },
+    {
+      "id": "bounded_support",
+      "description": "Bounded-support endpoint sensitivity with 200 repetitions per objective and endpoint.",
+      "entrypoint": "experiments.reproduction.bounded_support",
+      "displays": [
+        {
+          "latex_label": "fig:bounded_support",
+          "current_display": "Figure 2",
+          "output": "experiments/generated/bounded_support/bounded_support.png"
+        },
+        {
+          "latex_label": "tb_bounded_support",
+          "current_display": "Table I.1",
+          "output": "experiments/generated/bounded_support/table_i_1_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "synthetic_benchmark_comparison",
+      "description": "Synthetic DRO versus conventional EVT comparison at standard and scarce sample sizes.",
+      "entrypoint": "experiments.reproduction.synthetic_benchmark_comparison",
+      "displays": [
+        {
+          "latex_label": "tb5",
+          "current_display": "Table 4.2",
+          "output": "experiments/generated/synthetic_benchmark_comparison/table_4_2_rows.tex"
+        },
+        {
+          "latex_label": "tb5_scarce",
+          "current_display": "Table 4.3",
+          "output": "experiments/generated/synthetic_benchmark_comparison/table_4_3_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "synthetic_objective_sensitivity",
+      "description": "Synthetic D=2 chi-square and KS sensitivity to the location of the target tail interval.",
+      "entrypoint": "experiments.reproduction.synthetic_objective_sensitivity",
+      "displays": [
+        {
+          "latex_label": "tb4_tpe_0.7",
+          "current_display": "Table F.2",
+          "output": "experiments/generated/synthetic_objective_sensitivity/table_f_2_rows.tex"
+        }
+      ]
+    },
+    {
+      "id": "gcmt_bootstrap_figure",
+      "description": "Ecuador GCMT bootstrap coverage and interval-width comparison across sample sizes and critical quantiles.",
+      "entrypoint": "experiments.reproduction.gcmt_bootstrap_figure",
+      "displays": [
+        {
+          "latex_label": "fig:real_data_bootstrap_ecuador_coverage",
+          "current_display": "Figure 5",
+          "output": "experiments/generated/gcmt_bootstrap_figure/real_data_vs_evt_bootstrap_ecuador_coverage.png"
+        }
+      ]
+    }
+  ]
+}

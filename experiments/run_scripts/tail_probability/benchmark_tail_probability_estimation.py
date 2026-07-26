@@ -30,7 +30,9 @@ importr_with_install('eva')
 def benchmark_estimate_tail_probability(input_data: np.ndarray, 
                                         left_end_point_objective: float, right_end_point_objective: float,
                                         alpha: float,
-                                        method: str) -> typing.List[float]:
+                                        method: str,
+                                        threshold_percentage: typing.Optional[float] = None,
+                                        random_state: typing.Optional[int] = None) -> typing.List[float]:
 
     RCodeLib = "\n".join([
         "rm(list=ls())",
@@ -55,6 +57,29 @@ def benchmark_estimate_tail_probability(input_data: np.ndarray,
     else:
         raise NotImplementedError()
 
+    threshold_code = ""
+    threshold_argument = ""
+    if threshold_percentage is not None:
+        threshold_code = f"u <- as.numeric(quantile(data, {threshold_percentage}))"
+        threshold_argument = ", u=u"
+    random_seed_code = (
+        f"set.seed({int(random_state)})" if random_state is not None else ""
+    )
+    # MLE-v1's retained adaptive threshold selector calls POT::mrlplot.  R
+    # otherwise tries to open an X11 device in a headless batch worker and the
+    # estimator silently falls back to [0, 0].  A null PDF device preserves the
+    # original calculation without creating an artifact.
+    graphics_device_open = (
+        "grDevices::pdf(NULL)"
+        if method == "pot" and threshold_percentage is None
+        else ""
+    )
+    graphics_device_close = (
+        "grDevices::dev.off()"
+        if method == "pot" and threshold_percentage is None
+        else ""
+    )
+
     RCodeApply = f'''
 lhs <- {left_end_point_objective}
 
@@ -64,10 +89,18 @@ data <- c({','.join(map(str, input_data.tolist()))})
 
 conf <- 1 - {alpha}
 
+{random_seed_code}
+
+{threshold_code}
+
+{graphics_device_open}
+
 out <- tryCatch(
-	gpdTIP(data, lhs, rhs, conf=conf), 
+	gpdTIP(data, lhs, rhs, conf=conf{threshold_argument}),
 	error = function(e) e
 )
+
+{graphics_device_close}
 
 bbd <- if ("error" %in% class(out)) NA else{{
 	out$CI

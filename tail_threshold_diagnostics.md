@@ -10,7 +10,7 @@ Specifically, there is a tradeoff that:
 
 - If `a` is chosen too large, too few exceedance observations are available for reliable calibration of the parameters in the DRO constraints
 
-To address this transparently, we provide a set of diagnostic tools ([drovt.utils.tail_diagnostics](droevt/utils/tail_diagnostics.py)) that allow the analyst to visually assess the point at which the tail behavior begins to stabilize, and moreover assess the tail geometry to be used.
+To address this transparently, we provide a set of diagnostic tools ([droevt.utils.tail_diagnostics](droevt/utils/tail_diagnostics.py)) that allow the analyst to visually assess the point at which the tail behavior begins to stabilize, and moreover assess the tail geometry to be used.
 
 --- 
 
@@ -35,6 +35,10 @@ Using kernel methods, we estimate:
 - the first derivative (for checking monotonicity)
 
 - the second derivative (for checking convexity)
+
+The implementation fits a Gaussian KDE to the log-transformed observations
+using Scott's bandwidth rule, computes the derivatives analytically in
+log-space, and transforms them back to the original scale.
 
 These plots allow the analyst to examine whether, and how, the tail behaves for using the DRO formulation:
 

@@ -596,7 +596,7 @@ def spot_check(output_dir: Path) -> Path:
         f"- Target-coverage classification agreement: {coverage_agreement}/{len(comparisons)}",
         "- Existing chi-square and KS D=2 optimization routines reused directly",
         "- These are raw-entry spot checks, not 200-repetition aggregate reproductions",
-        "- The full runner, checkpoint, aggregation, LaTeX renderer, and manuscript comparator remain available through the `all` stage",
+        "- The full runner, checkpoint, aggregation, and LaTeX renderer remain available through the `all` stage",
         "",
         "| Distribution | LHS | Rep | Constraint | Generated | Historical | Difference |",
         "| --- | ---: | ---: | --- | ---: | ---: | ---: |",
@@ -637,7 +637,7 @@ def main() -> None:
         write_aggregate(raw_path, args.output_dir)
     if args.stage in {"render", "all"}:
         render(raw_path, args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(raw_path, args.output_dir)
 
 

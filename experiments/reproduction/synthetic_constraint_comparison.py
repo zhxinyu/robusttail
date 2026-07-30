@@ -337,7 +337,7 @@ def main() -> None:
         summary_path = aggregate(raw_path, args.output_dir)
     if args.stage in {"render", "all"}:
         render(summary_path, args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(args.output_dir, args.manuscript)
 
 

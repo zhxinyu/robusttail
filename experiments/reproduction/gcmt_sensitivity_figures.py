@@ -26,6 +26,8 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.ticker import ScalarFormatter
 from scipy.stats import zscore
 
 from experiments.input_data.cmt.parse_script import parse_ndk
@@ -134,18 +136,31 @@ def _worker_initialize() -> None:
     _STANDARDIZED_DATA = _load_standardized_data()
 
 
-def _tasks(studies: tuple[str, ...]) -> list[Task]:
+def _tasks(
+    studies: tuple[str, ...],
+    requested_methods: tuple[str, ...] = METHODS,
+) -> list[Task]:
     tasks: list[Task] = []
     if "threshold" in studies:
+        if "dro" in requested_methods:
+            for region in REGIONS:
+                tasks.extend(
+                    Task("threshold", region, value, "dro")
+                    for value in THRESHOLDS
+                )
         for region in REGIONS:
-            tasks.extend(Task("threshold", region, value, "dro") for value in THRESHOLDS)
-            tasks.extend(Task("threshold", region, -1.0, method) for method in METHODS[1:])
+            tasks.extend(
+                Task("threshold", region, -1.0, method)
+                for method in METHODS[1:]
+                if method in requested_methods
+            )
     if "exceedance" in studies:
         tasks.extend(
             Task("exceedance", region, quantile, method)
             for region in REGIONS
             for quantile in EXCEEDANCE_QUANTILES
             for method in METHODS
+            if method in requested_methods
         )
     if "confidence" in studies:
         tasks.extend(
@@ -153,6 +168,7 @@ def _tasks(studies: tuple[str, ...]) -> list[Task]:
             for region in REGIONS
             for level in CONFIDENCE_LEVELS
             for method in METHODS
+            if method in requested_methods
         )
     return tasks
 
@@ -233,9 +249,16 @@ def _write_atomic(path: Path, rows: list[dict[str, object]], order: dict[tuple, 
     temporary.replace(path)
 
 
-def generate(output_dir: Path, studies: tuple[str, ...], workers: int) -> Path:
+def generate(
+    output_dir: Path,
+    studies: tuple[str, ...],
+    workers: int,
+    requested_methods: tuple[str, ...] = METHODS,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    requested_tasks = _tasks(studies)
+    requested_tasks = _tasks(studies, requested_methods)
+    if not requested_tasks:
+        raise ValueError("No tasks match the requested studies and methods")
     order = {task.key: index for index, task in enumerate(requested_tasks)}
     final_path = output_dir / "raw_results.csv"
     partial_path = output_dir / "raw_results.partial.csv"
@@ -299,8 +322,73 @@ def _interval_center(bounds: tuple[float, float]) -> tuple[float, float]:
 
 def plot_threshold(raw_path: Path, output_dir: Path) -> Path:
     lookup = _lookup(raw_path)
-    figure, axes = plt.subplots(4, 2, figsize=(12, 9), sharex=False)
-    for axis, region in zip(axes.flat, REGIONS):
+    separate_methods_by_region = {
+        "ECUADOR": ("pot_bt",),
+        "OFF_COAST_OF_NORTHERN_CA": ("pot_bt",),
+        "TURKEY": ("pot_bt",),
+        "HOKKAIDO_JAPAN_REGION": ("pot_bt",),
+        "BANDA_SEA": ("pot_bt",),
+        "KURIL_ISLANDS": ("pot_bt",),
+        "SOLOMON_ISLANDS": ("pot_bt",),
+        "FIJI_ISLANDS_REGION": ("pot_bt",),
+    }
+    main_upper_by_row: dict[int, float] = {}
+    mle_upper_by_row: dict[int, float] = {}
+    for row in range(4):
+        row_regions = REGIONS[2 * row : 2 * row + 2]
+        main_upper = max(
+            [
+                lookup[("threshold", region, threshold, "dro")][1]
+                for region in row_regions
+                for threshold in THRESHOLDS
+            ]
+            + [
+                lookup[("threshold", region, -1.0, method)][1]
+                for region in row_regions
+                for method in ("pl", "bayesian", "pwm")
+            ]
+        )
+        mle_upper = max(
+            lookup[("threshold", region, -1.0, "pot_bt")][1]
+            for region in row_regions
+        )
+        main_upper_by_row[row] = 1.08 * main_upper
+        mle_upper_by_row[row] = 1.08 * mle_upper
+
+    # At 0.95\textwidth in the manuscript, this aspect ratio reproduces the
+    # 207.24 pt vertical footprint of the Overleaf reference figure.
+    figure = plt.figure(figsize=(10, 4.737))
+    outer_grid = figure.add_gridspec(
+        4,
+        2,
+        left=0.08,
+        right=0.885,
+        bottom=0.12,
+        top=0.95,
+        hspace=0.58,
+        wspace=0.21,
+    )
+    for panel_index, region in enumerate(REGIONS):
+        row, column = divmod(panel_index, 2)
+        separate_methods = separate_methods_by_region.get(region, ())
+        panel_grid = outer_grid[row, column].subgridspec(
+            1,
+            2,
+            width_ratios=(7.0, 1.2),
+            wspace=0.0,
+        )
+        axis = figure.add_subplot(panel_grid[0, 0])
+        separate_axes: list[plt.Axes] = []
+        if len(separate_methods) == 1:
+            separate_axes = [figure.add_subplot(panel_grid[0, 1])]
+        elif len(separate_methods) == 2:
+            separate_grid = panel_grid[0, 1].subgridspec(
+                1, 3, width_ratios=(0.6, 1.0, 1.0), wspace=0.0
+            )
+            separate_axes = [
+                figure.add_subplot(separate_grid[0, index + 1])
+                for index in range(len(separate_methods))
+            ]
         centers, errors = zip(
             *[
                 _interval_center(lookup[("threshold", region, threshold, "dro")])
@@ -311,36 +399,111 @@ def plot_threshold(raw_path: Path, output_dir: Path) -> Path:
             np.arange(len(THRESHOLDS)),
             centers,
             yerr=errors,
-            fmt="o",
-            markersize=3.5,
-            linewidth=1.2,
+            fmt="none",
+            capsize=2,
+            linewidth=1.5,
             color="#1f77b4",
         )
-        benchmark_x = np.arange(len(THRESHOLDS) + 1, len(THRESHOLDS) + 5)
-        benchmark = [
-            _interval_center(lookup[("threshold", region, -1.0, method)])
-            for method in METHODS[1:]
-        ]
-        axis.errorbar(
-            benchmark_x,
-            [value[0] for value in benchmark],
-            yerr=[value[1] for value in benchmark],
-            fmt="s",
-            markersize=4,
-            linewidth=1.2,
-            color="black",
+        comparison_methods = tuple(
+            method for method in METHODS[1:] if method not in separate_methods
         )
+        benchmark_x = len(THRESHOLDS) + 2 + 3 * np.arange(
+            len(comparison_methods)
+        )
+        for position, method in zip(benchmark_x, comparison_methods):
+            center, error = _interval_center(
+                lookup[("threshold", region, -1.0, method)]
+            )
+            _, color = LINE_STYLES[method]
+            axis.errorbar(
+                position,
+                center,
+                yerr=error,
+                fmt="none",
+                capsize=2,
+                linewidth=1.5,
+                color=color,
+            )
         axis.axvline(len(THRESHOLDS) - 0.5, color="0.7", linestyle="--", linewidth=1)
-        tick_positions = list(range(0, len(THRESHOLDS), 5)) + list(benchmark_x)
-        tick_labels = [f"{THRESHOLDS[index]:.1f}" for index in range(0, len(THRESHOLDS), 5)]
-        tick_labels += [METHOD_LABELS[method] for method in METHODS[1:]]
-        axis.set_xticks(tick_positions, tick_labels, rotation=45, ha="right")
-        axis.set_title(region.replace("_", " "))
-        axis.grid(axis="y", alpha=0.25)
-    figure.supylabel(r"Exceedance probability $P(X \geq M_W)$")
-    figure.tight_layout()
+        threshold_tick_indices = (0, 10, 20, 30)
+        tick_positions = list(threshold_tick_indices)
+        tick_labels = [f"{THRESHOLDS[index]:.2f}" for index in threshold_tick_indices]
+        axis.set_xticks(tick_positions)
+        # Keep the DRO threshold span and separator at the same physical
+        # positions in every panel, regardless of how many EVT methods have
+        # been moved to independent-scale mini-axes.
+        axis.set_xlim(-2, 42)
+        axis.set_ylim(0, main_upper_by_row[row])
+        axis.tick_params(axis="y", labelsize=10)
+        if panel_index >= 6:
+            axis.set_xticklabels(tick_labels, rotation=0, ha="center")
+            axis.tick_params(axis="x", labelsize=9, pad=1)
+        else:
+            axis.tick_params(axis="x", bottom=False, labelbottom=False)
+        region_title = region.replace("_", " ")
+        if region == "OFF_COAST_OF_NORTHERN_CA":
+            region_title = "OFF COAST N. CALIFORNIA"
+        axis.set_title(region_title, fontsize=13, pad=2)
+        axis.grid(axis="y", alpha=0.25, linewidth=0.7)
+
+        for separate_index, (separate_axis, method) in enumerate(
+            zip(separate_axes, separate_methods)
+        ):
+            center, error = _interval_center(
+                lookup[("threshold", region, -1.0, method)]
+            )
+            _, color = LINE_STYLES[method]
+            separate_axis.errorbar(
+                [0],
+                [center],
+                yerr=[error],
+                fmt="none",
+                capsize=2,
+                linewidth=1.5,
+                color=color,
+            )
+            separate_axis.set_xlim(-0.6, 0.6)
+            separate_axis.set_ylim(0, mle_upper_by_row[row])
+            separate_axis.set_xticks([])
+            if len(separate_methods) == 2 and separate_index == 0:
+                separate_axis.yaxis.tick_left()
+            else:
+                separate_axis.yaxis.tick_right()
+            if row >= 1:
+                scientific_formatter = ScalarFormatter(useMathText=True)
+                scientific_formatter.set_powerlimits((-2, -2))
+                separate_axis.yaxis.set_major_formatter(scientific_formatter)
+                separate_axis.yaxis.set_offset_position("right")
+                separate_axis.yaxis.get_offset_text().set_fontsize(6.5)
+            separate_axis.tick_params(axis="y", labelsize=7.5, pad=1)
+            separate_axis.grid(axis="y", alpha=0.25, linewidth=0.7)
+    legend_handles = [
+        Line2D(
+            [0],
+            [0],
+            color=LINE_STYLES[method][1],
+            linewidth=2,
+            label=METHOD_LABELS[method],
+        )
+        for method in ("pl", "bayesian", "pwm", "pot_bt")
+    ]
+    figure.legend(
+        handles=legend_handles,
+        loc="center left",
+        bbox_to_anchor=(0.905, 0.53),
+        ncol=1,
+        frameon=False,
+        fontsize=8.5,
+        handlelength=1.4,
+        labelspacing=0.8,
+    )
+    figure.supylabel(
+        r"Exceedance probability $P(X \geq M_W)$",
+        fontsize=13,
+        x=0.012,
+    )
     path = output_dir / "real_data_vs_evt_threshold_percentage.png"
-    figure.savefig(path, dpi=150)
+    figure.savefig(path, dpi=200)
     plt.close(figure)
     return path
 
@@ -362,14 +525,39 @@ def _plot_grid(
     filename: str,
 ) -> Path:
     lookup = _lookup(raw_path)
-    figure, axes = plt.subplots(2, 8, figsize=(30, 5), sharex="col")
-    for column, region in enumerate(REGIONS):
+    stacked_layout = study in {"exceedance", "confidence"}
+    if stacked_layout:
+        figure_height = 6.5 if study == "exceedance" else 10.0
+        figure, axes = plt.subplots(
+            4, 4, figsize=(12, figure_height), sharex=False
+        )
+        panel_pairs = [
+            (axes[2 * (index // 4), index % 4], axes[2 * (index // 4) + 1, index % 4])
+            for index in range(len(REGIONS))
+        ]
+    else:
+        figure, axes = plt.subplots(2, 8, figsize=(30, 5), sharex="col")
+        panel_pairs = [(axes[0, index], axes[1, index]) for index in range(len(REGIONS))]
+
+    mle_axis_pairs: list[tuple[plt.Axes, plt.Axes]] = []
+    for region_index, (region, (bound_axis, width_axis)) in enumerate(
+        zip(REGIONS, panel_pairs)
+    ):
+        if study in {"exceedance", "confidence"}:
+            mle_bound_axis = bound_axis.twinx()
+            mle_width_axis = width_axis.twinx()
+            mle_axis_pairs.append((mle_bound_axis, mle_width_axis))
+        else:
+            mle_bound_axis = bound_axis
+            mle_width_axis = width_axis
         for method in METHODS:
             bounds = [lookup[(study, region, setting, method)] for setting in settings]
             lower = np.asarray([pair[0] for pair in bounds])
             upper = np.asarray([pair[1] for pair in bounds])
             style, color = LINE_STYLES[method]
-            axes[0, column].plot(
+            method_bound_axis = mle_bound_axis if method == "pot_bt" else bound_axis
+            method_width_axis = mle_width_axis if method == "pot_bt" else width_axis
+            method_bound_axis.plot(
                 settings,
                 upper,
                 linestyle=style,
@@ -377,22 +565,93 @@ def _plot_grid(
                 linewidth=2 if method == "dro" else 1.2,
                 label=METHOD_LABELS[method],
             )
-            axes[0, column].scatter(settings, lower, color=color, s=7, alpha=0.55)
-            axes[1, column].plot(
+            method_bound_axis.scatter(
+                settings, lower, color=color, s=7, alpha=0.55
+            )
+            method_width_axis.plot(
                 settings,
                 upper - lower,
                 linestyle=style,
                 color=color,
                 linewidth=2 if method == "dro" else 1.2,
             )
-        axes[0, column].set_title(region.replace("_", " "))
-        axes[0, column].grid(alpha=0.2)
-        axes[1, column].grid(alpha=0.2)
-    axes[0, 0].set_ylabel("Confidence bound")
-    axes[1, 0].set_ylabel("Confidence interval width")
-    handles, labels = axes[0, 0].get_legend_handles_labels()
-    figure.legend(handles, labels, loc="lower center", ncol=5, frameon=True)
-    figure.tight_layout(rect=(0, 0.08, 1, 1))
+        region_title = region.replace("_", " ")
+        if region == "OFF_COAST_OF_NORTHERN_CA":
+            region_title = "OFF COAST N. CALIFORNIA"
+        bound_axis.set_title(region_title, fontsize=15, pad=2)
+        bound_axis.grid(alpha=0.2)
+        width_axis.grid(alpha=0.2)
+        bound_axis.set_ylim(bottom=0)
+        width_axis.set_ylim(bottom=0)
+        if study in {"exceedance", "confidence"}:
+            _, mle_color = LINE_STYLES["pot_bt"]
+            for mle_axis in (mle_bound_axis, mle_width_axis):
+                mle_axis.set_ylim(bottom=0)
+                mle_axis.tick_params(
+                    axis="y",
+                    colors=mle_color,
+                    labelsize=11 if study == "confidence" else 8,
+                    pad=1,
+                )
+                mle_axis.spines["right"].set_color(mle_color)
+
+        if stacked_layout:
+            tick_fontsize = 13 if study == "confidence" else 11
+            label_fontsize = 12 if study == "confidence" else 10
+            bound_axis.tick_params(axis="both", labelsize=tick_fontsize)
+            bound_axis.tick_params(axis="x", bottom=False, labelbottom=False)
+            width_axis.tick_params(axis="both", labelsize=tick_fontsize)
+            if study == "exceedance":
+                x_ticks = (0.990, 0.995, 0.9995)
+                x_labels = [f"{value:.4g}" for value in x_ticks]
+            else:
+                x_ticks = (0.90, 0.95, 0.99)
+                x_labels = [f"{value:.2f}" for value in x_ticks]
+            width_axis.set_xticks(x_ticks, x_labels)
+            if region_index % 4 == 0:
+                bound_axis.set_ylabel(
+                    "Confidence bound", fontsize=label_fontsize, labelpad=2
+                )
+                width_axis.set_ylabel(
+                    "Interval width", fontsize=label_fontsize, labelpad=2
+                )
+
+    if not stacked_layout:
+        axes[0, 0].set_ylabel("Confidence bound")
+        axes[1, 0].set_ylabel("Confidence interval width")
+
+    handles, labels = panel_pairs[0][0].get_legend_handles_labels()
+    if study in {"exceedance", "confidence"}:
+        mle_handles, mle_labels = mle_axis_pairs[0][0].get_legend_handles_labels()
+        handles = [handles[0], *mle_handles, *handles[1:]]
+        labels = [labels[0], *mle_labels, *labels[1:]]
+    figure.legend(
+        handles,
+        labels,
+        loc="lower center",
+        ncol=5,
+        frameon=True,
+        fontsize=(13 if study == "confidence" else 11) if stacked_layout else None,
+    )
+    if stacked_layout:
+        figure.tight_layout(rect=(0, 0.075, 1, 1), pad=0.6, h_pad=0.35, w_pad=0.8)
+        for row in (1, 3):
+            for column, axis in enumerate(axes[row, :]):
+                position = axis.get_position()
+                axis.set_position(
+                    [
+                        position.x0,
+                        position.y0 + 0.015,
+                        position.width,
+                        position.height,
+                    ]
+                )
+                if study in {"exceedance", "confidence"}:
+                    mle_axis_pairs[(row // 2) * 4 + column][1].set_position(
+                        axis.get_position()
+                    )
+    else:
+        figure.tight_layout(rect=(0, 0.08, 1, 1))
     path = output_dir / filename
     figure.savefig(path, dpi=150)
     plt.close(figure)
@@ -565,12 +824,27 @@ def _parse_studies(value: str) -> tuple[str, ...]:
     return requested
 
 
+def _parse_methods(value: str) -> tuple[str, ...]:
+    if value == "all":
+        return METHODS
+    requested = tuple(part.strip() for part in value.split(",") if part.strip())
+    invalid = set(requested) - set(METHODS)
+    if not requested or invalid:
+        raise ValueError(f"Invalid methods: {sorted(invalid)}")
+    return requested
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "stage", choices=("generate", "plot", "verify", "spot-check-bi", "all")
     )
     parser.add_argument("--studies", default="all")
+    parser.add_argument(
+        "--methods",
+        default="all",
+        help="Comma-separated internal method names, e.g. pot_bt,pwm",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
     args = parser.parse_args()
@@ -579,12 +853,18 @@ def main() -> None:
         spot_check_bayesian(args.output_dir, args.workers)
         return
     studies = _parse_studies(args.studies)
+    methods = _parse_methods(args.methods)
+    if methods != METHODS and args.stage != "generate":
+        raise ValueError(
+            "Method-filtered runs support only the generate stage; merge the "
+            "result with unchanged method rows before plotting."
+        )
     raw_path = args.output_dir / "raw_results.csv"
     if args.stage in {"generate", "all"}:
-        raw_path = generate(args.output_dir, studies, args.workers)
+        raw_path = generate(args.output_dir, studies, args.workers, methods)
     if args.stage in {"plot", "all"}:
         plot(raw_path, args.output_dir, studies)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(args.output_dir, studies)
 
 

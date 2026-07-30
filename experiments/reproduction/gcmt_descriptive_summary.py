@@ -249,7 +249,7 @@ def main() -> None:
         render_plots(args.output_dir)
     if args.stage in {"render", "all"}:
         render_table(args.output_dir / "summary.csv", args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(args.output_dir, args.manuscript)
 
 

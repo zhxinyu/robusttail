@@ -786,7 +786,7 @@ def main() -> None:
         aggregate_results(args.output_dir / "raw_results.csv", args.output_dir)
     if args.stage in {"render", "all"}:
         render_latex(args.output_dir / "summary.csv", args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify_against_manuscript(
             args.output_dir,
             args.manuscript,

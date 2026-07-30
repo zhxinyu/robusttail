@@ -18,6 +18,8 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.ticker import MaxNLocator
 from PIL import Image
 from scipy.stats import gamma, lognorm, pareto
 
@@ -79,6 +81,7 @@ def generate(output_dir: Path) -> tuple[Path, Path]:
     arrays_dir.mkdir(parents=True, exist_ok=True)
 
     component_paths: list[Path] = []
+    diagnostic_arrays: list[dict[str, np.ndarray]] = []
     titles: list[str] = []
     for name, distribution, title in SOURCES:
         parameters = DISTRIBUTION_DEFAULT_PARAMETERS[name]
@@ -92,6 +95,7 @@ def generate(output_dir: Path) -> tuple[Path, Path]:
         arrays = _save_diagnostic(values, (name, parameters), path)
         np.savez(arrays_dir / f"{name}.npz", **arrays)
         component_paths.append(path)
+        diagnostic_arrays.append(arrays)
         titles.append(title)
 
     cmt_values = parse_ndk()["Mw"].to_numpy(dtype=float)
@@ -99,17 +103,127 @@ def generate(output_dir: Path) -> tuple[Path, Path]:
     cmt_arrays = _save_diagnostic(cmt_values, ("cmt", {}), cmt_path)
     np.savez(arrays_dir / "cmt.npz", **cmt_arrays)
     component_paths.append(cmt_path)
+    diagnostic_arrays.append(cmt_arrays)
     titles.append("Example 4 — Seismic\nMagnitudes (CMT Data)")
 
-    # The original four-column assembler was not retained.  Recreate only the
-    # presentation layer; every scientific panel comes directly from the
-    # established component generator above.
-    composite, axes = plt.subplots(1, 4, figsize=(25.26, 6.14), dpi=100)
-    for axis, path, title in zip(axes, component_paths, titles):
-        axis.imshow(Image.open(path))
-        axis.set_title(title, loc="left", fontsize=27, fontweight="bold", pad=18)
-        axis.axis("off")
-    composite.subplots_adjust(left=0.005, right=0.995, bottom=0.01, top=0.84, wspace=0.08)
+    # Render the composite directly rather than shrinking four already-rasterized
+    # component figures.  This preserves the original outer dimensions while
+    # giving labels and tick marks enough pixels to remain legible in print.
+    composite = plt.figure(figsize=(25.26, 6.14), dpi=100)
+    grid = composite.add_gridspec(
+        2,
+        11,
+        width_ratios=(1, 1, 0.16, 1, 1, 0.16, 1, 1, 0.16, 1, 1),
+        left=0.040,
+        right=0.985,
+        bottom=0.18,
+        top=0.82,
+        wspace=0.36,
+        hspace=0.08,
+    )
+    group_columns = ((0, 1), (3, 4), (6, 7), (9, 10))
+
+    for group_index, (arrays, title, columns) in enumerate(
+        zip(diagnostic_arrays, titles, group_columns)
+    ):
+        axes = (
+            composite.add_subplot(grid[0, columns[0]]),
+            composite.add_subplot(grid[0, columns[1]]),
+            composite.add_subplot(grid[1, columns[0]]),
+            composite.add_subplot(grid[1, columns[1]]),
+        )
+        if group_index == 1:
+            # Give only the Lognormal right-hand panels a little extra room for
+            # their longer y-tick labels; keep every other pair compact.
+            for axis in (axes[1], axes[3]):
+                position = axis.get_position()
+                axis.set_position(
+                    [
+                        position.x0 + 0.003,
+                        position.y0,
+                        position.width - 0.003,
+                        position.height,
+                    ]
+                )
+        threshold = arrays["threshold_percentages"]
+        series = (
+            arrays["num_exceedances"],
+            arrays["density"],
+            arrays["first_derivative"],
+            arrays["second_derivative"],
+        )
+        theoretical = (
+            np.array([]),
+            arrays["theoretical_density"],
+            arrays["theoretical_first_derivative"],
+            arrays["theoretical_second_derivative"],
+        )
+
+        for panel_index, (axis, values, theory) in enumerate(
+            zip(axes, series, theoretical)
+        ):
+            axis.plot(threshold, values, lw=2.2, color="tab:blue")
+            if theory.size:
+                axis.plot(
+                    threshold,
+                    theory,
+                    lw=2.2,
+                    linestyle="--",
+                    color="tab:orange",
+                )
+            if panel_index in (2, 3):
+                axis.axhline(0, color="0.35", lw=1.2, linestyle="--", alpha=0.7)
+            axis.tick_params(axis="both", labelsize=17, pad=2)
+            axis.xaxis.set_major_locator(MaxNLocator(nbins=3))
+            axis.yaxis.set_major_locator(MaxNLocator(nbins=3))
+            axis.grid(axis="y", color="0.92", linewidth=0.8)
+            for spine in axis.spines.values():
+                spine.set_color("0.65")
+                spine.set_linewidth(0.9)
+
+        for axis in axes[:2]:
+            axis.tick_params(axis="x", labelbottom=False)
+
+        left = group_index / 4 + 0.012
+        composite.text(
+            left,
+            0.96,
+            title,
+            ha="left",
+            va="top",
+            fontsize=25,
+            fontweight="bold",
+            linespacing=1.05,
+        )
+
+    for x_position in (0.25, 0.50, 0.75):
+        composite.add_artist(
+            plt.Line2D(
+                (x_position, x_position),
+                (0.07, 0.97),
+                transform=composite.transFigure,
+                color="0.90",
+                lw=1.0,
+            )
+        )
+
+    composite.legend(
+        handles=(
+            Line2D((0,), (0,), color="tab:blue", lw=2.2),
+            Line2D((0,), (0,), color="tab:orange", lw=2.2, linestyle="--"),
+        ),
+        labels=(
+            "Empirical exceedances / kernel estimate",
+            "Theoretical density / derivatives",
+        ),
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.005),
+        ncol=2,
+        frameon=False,
+        fontsize=22,
+        handlelength=2.6,
+        columnspacing=1.6,
+    )
     composite_path = output_dir / "tail_diagnostics.png"
     composite.savefig(composite_path, dpi=100)
     plt.close(composite)
@@ -163,7 +277,7 @@ def main() -> None:
 
     if args.stage in {"generate", "all"}:
         generate(args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(args.output_dir)
 
 

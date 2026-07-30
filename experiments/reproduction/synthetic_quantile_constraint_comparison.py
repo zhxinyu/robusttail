@@ -496,7 +496,7 @@ def spot_check(output_dir: Path, workers: int) -> Path:
         f"- D=0 >= D=1 >= D=2 ordering: {monotone}/{len(rows)} groups",
         "- Existing `quantileEstimationPerRep` implementation reused directly",
         "- These are raw-entry spot checks, not 200-repetition aggregate reproductions",
-        "- The full runner, checkpoint, aggregation, LaTeX renderer, and manuscript comparator remain available through the `all` stage",
+        "- The full runner, checkpoint, aggregation, and LaTeX renderer remain available through the `all` stage",
         "",
         "| Distribution | Rep | Constraint | Generated | Historical | Difference |",
         "| --- | ---: | --- | ---: | ---: | ---: |",
@@ -532,7 +532,7 @@ def main() -> None:
         write_aggregate(raw_path, args.output_dir)
     if args.stage in {"render", "all"}:
         render(raw_path, args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(raw_path, args.output_dir)
 
 

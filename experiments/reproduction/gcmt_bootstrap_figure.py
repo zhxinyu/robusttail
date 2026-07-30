@@ -59,6 +59,7 @@ SAMPLE_SIZES = tuple(range(50, 151, 10))
 CRITICAL_QUANTILES = (0.990, 0.992, 0.994, 0.996, 0.998, 0.9991, 0.9993, 0.9995)
 METHODS = ("dro", "pot_bt", "pl", "bayesian", "pwm")
 METHOD_LABELS = ("DRO", "MLE-v2", "PL", "BI", "PWM")
+_ACTIVE_METHODS = METHODS
 REPETITIONS = 200
 RANDOM_SEED = 20220222
 THRESHOLD_PERCENTAGE = 0.70
@@ -158,22 +159,28 @@ def _interval(result: object) -> tuple[float, float]:
         return 0.0, 0.0
 
 
+def _worker_initialize(methods: tuple[str, ...]) -> None:
+    global _ACTIVE_METHODS
+    _ACTIVE_METHODS = methods
+
+
 def _run_task(task: Task) -> list[dict[str, object]]:
     intervals: dict[str, tuple[float, float]] = {}
-    intervals["dro"] = _interval(
-        estimate_tail_probability_D2_chi2_only(
-            input_data=task.sample,
-            left_end_point_objective=task.objective,
-            right_end_point_objective=np.inf,
-            threshold_percentage=THRESHOLD_PERCENTAGE,
-            g_ellipsoidal_dimension=ELLIPSOIDAL_DIMENSION,
-            alpha=ALPHA,
-            random_state=RANDOM_SEED,
-            bootstrapping_size=BOOTSTRAPPING_SIZE,
-            right_endpoint=np.inf,
+    if "dro" in _ACTIVE_METHODS:
+        intervals["dro"] = _interval(
+            estimate_tail_probability_D2_chi2_only(
+                input_data=task.sample,
+                left_end_point_objective=task.objective,
+                right_end_point_objective=np.inf,
+                threshold_percentage=THRESHOLD_PERCENTAGE,
+                g_ellipsoidal_dimension=ELLIPSOIDAL_DIMENSION,
+                alpha=ALPHA,
+                random_state=RANDOM_SEED,
+                bootstrapping_size=BOOTSTRAPPING_SIZE,
+                right_endpoint=np.inf,
+            )
         )
-    )
-    for method in METHODS[1:]:
+    for method in (method for method in METHODS[1:] if method in _ACTIVE_METHODS):
         intervals[method] = _interval(
             benchmark_estimate_tail_probability(
                 input_data=task.sample,
@@ -193,7 +200,7 @@ def _run_task(task: Task) -> list[dict[str, object]]:
             "lower_bound": intervals[method][0],
             "upper_bound": intervals[method][1],
         }
-        for method in METHODS
+        for method in _ACTIVE_METHODS
     ]
 
 
@@ -224,13 +231,17 @@ def _write_atomic(path: Path, rows: list[dict[str, object]], order: dict[tuple, 
     temporary.replace(path)
 
 
-def generate(output_dir: Path, workers: int) -> Path:
+def generate(
+    output_dir: Path,
+    workers: int,
+    requested_methods: tuple[str, ...] = METHODS,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     tasks, _ = _tasks()
     row_keys = [
         (task.sample_size, task.critical_quantile, task.repetition, method)
         for task in tasks
-        for method in METHODS
+        for method in requested_methods
     ]
     order = {key: index for index, key in enumerate(row_keys)}
     final_path = output_dir / "raw_results.csv"
@@ -245,7 +256,11 @@ def generate(output_dir: Path, workers: int) -> Path:
             int(row["repetition"]),
         )
         completed_methods.setdefault(key, set()).add(row["method"])
-    malformed = [key for key, methods in completed_methods.items() if methods != set(METHODS)]
+    malformed = [
+        key
+        for key, methods in completed_methods.items()
+        if methods != set(requested_methods)
+    ]
     if malformed:
         raise ValueError(f"Checkpoint has incomplete task groups: {malformed[:3]}")
     completed = set(completed_methods)
@@ -265,6 +280,8 @@ def generate(output_dir: Path, workers: int) -> Path:
     with context.Pool(
         processes=workers,
         maxtasksperchild=MAX_TASKS_PER_WORKER,
+        initializer=_worker_initialize,
+        initargs=(requested_methods,),
     ) as pool:
         for completed_now, result_rows in enumerate(
             pool.imap_unordered(_run_task, pending, chunksize=1), start=1
@@ -368,50 +385,88 @@ def plot(raw_path: Path, output_dir: Path) -> Path:
             for size in displayed_sizes
         ]
     )
-    figure, axis = plt.subplots(figsize=(24, 13))
-    norm = colors.TwoSlopeNorm(vmin=0.85, vcenter=0.95, vmax=1.0)
+    # Match the retained manuscript asset's aspect ratio so replacing the
+    # figure does not change its LaTeX footprint.
+    figure, axis = plt.subplots(figsize=(7523 / 300, 4178 / 300))
+    # Use the regenerated lower tail of the coverage values while retaining
+    # 0.95 as the nominal midpoint.
+    norm = colors.TwoSlopeNorm(vmin=0.90, vcenter=0.95, vmax=1.0)
     image = axis.imshow(coverage_grid, cmap="RdYlGn", norm=norm, aspect="auto")
     axis.set_xticks(
         np.arange(len(CRITICAL_QUANTILES)),
         [f"{value:.4f}" for value in CRITICAL_QUANTILES],
-        fontsize=13,
+        fontsize=17,
     )
     axis.set_yticks(
         np.arange(len(displayed_sizes)),
         [str(value) for value in displayed_sizes],
-        fontsize=13,
+        fontsize=17,
     )
-    axis.set_xlabel("Critical quantile", fontsize=15)
-    axis.set_ylabel("Bootstrap sample size", fontsize=15)
+    axis.set_xticks(
+        np.arange(-0.5, len(CRITICAL_QUANTILES), 1),
+        minor=True,
+    )
+    axis.set_yticks(
+        np.arange(-0.5, len(displayed_sizes), 1),
+        minor=True,
+    )
+    axis.grid(which="minor", color="black", linewidth=0.55)
+    axis.tick_params(which="minor", bottom=False, left=False)
+    method_offsets = np.linspace(-0.38, 0.38, len(METHODS))
     for row_index, sample_size in enumerate(displayed_sizes):
         for column_index, quantile in enumerate(CRITICAL_QUANTILES):
             selected = [lookup[(sample_size, quantile, method)] for method in METHODS]
             coverages = [float(row["coverage"]) for row in selected]
             widths = [float(row["mean_width"]) for row in selected]
             best = int(np.argmax(coverages))
-            top_parts = []
-            for method_index, value in enumerate(coverages):
-                top_parts.append(
-                    rf"$\mathbf{{{value:.2f}}}$" if method_index == best else f"{value:.2f}"
+            for method_index, offset in enumerate(method_offsets):
+                is_best = method_index == best
+                axis.text(
+                    column_index + offset,
+                    row_index - 0.02,
+                    f"{coverages[method_index]:.2f}",
+                    ha="center",
+                    va="center",
+                    fontsize=15,
+                    fontweight="bold" if is_best else "normal",
+                    bbox=(
+                        {
+                            "boxstyle": "round,pad=0.08",
+                            "facecolor": "none",
+                            "edgecolor": "black",
+                            "linewidth": 0.9,
+                        }
+                        if is_best
+                        else None
+                    ),
                 )
-            axis.text(
-                column_index,
-                row_index - 0.16,
-                " ".join(top_parts),
-                ha="center",
-                va="center",
-                fontsize=10,
-            )
-            axis.text(
-                column_index,
-                row_index + 0.18,
-                " ".join(f"{value:.2E}" for value in widths),
-                ha="center",
-                va="center",
-                fontsize=6.5,
-            )
-    colorbar = figure.colorbar(image, ax=axis, fraction=0.025, pad=0.005)
-    colorbar.set_label("DRO empirical coverage", fontsize=13)
+                mantissa, exponent_text = f"{widths[method_index]:.2E}".split("E")
+                axis.text(
+                    column_index + offset,
+                    row_index + 0.20,
+                    mantissa,
+                    ha="center",
+                    va="center",
+                    fontsize=13,
+                )
+                exponent = int(exponent_text)
+                axis.text(
+                    column_index + offset,
+                    row_index + 0.38,
+                    rf"$\times 10^{{{exponent}}}$",
+                    ha="center",
+                    va="center",
+                    fontsize=11.5,
+                )
+    colorbar = figure.colorbar(
+        image,
+        ax=axis,
+        fraction=0.025,
+        pad=0.005,
+        aspect=24,
+    )
+    colorbar.set_label("DRO empirical coverage", fontsize=17)
+    colorbar.ax.tick_params(labelsize=15)
     figure.tight_layout()
     path = output_dir / MANUSCRIPT_FIGURE.name
     figure.savefig(path, dpi=300)
@@ -594,7 +649,7 @@ def spot_check(output_dir: Path, workers: int) -> Path:
         "- Settings cover the smallest/hardest corner, an interior point, and the largest/easiest corner of the manuscript grid",
         "- Existing D=2 chi-square DRO, MLE-v2, PL, BI, and PWM implementations reused directly",
         "- These are raw-interval spot checks, not 200-repetition coverage estimates",
-        "- The full 17,600-group runner, atomic checkpoint, aggregation, plot renderer, and visual verifier remain available through the `all` stage",
+        "- The full 17,600-group runner, atomic checkpoint, aggregation, and plot renderer remain available through the `all` stage",
         "",
         "| n | Quantile | Rep | Method | Lower | Upper | Width |",
         "| ---: | ---: | ---: | --- | ---: | ---: | ---: |",
@@ -620,19 +675,40 @@ def main() -> None:
     )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
+    parser.add_argument(
+        "--methods",
+        default="all",
+        help="Comma-separated internal method names, e.g. pot_bt,pwm",
+    )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    if args.methods == "all":
+        requested_methods = METHODS
+    else:
+        requested_methods = tuple(
+            method.strip() for method in args.methods.split(",") if method.strip()
+        )
+        invalid = set(requested_methods) - set(METHODS)
+        if not requested_methods or invalid:
+            raise ValueError(f"Invalid methods: {sorted(invalid)}")
     if args.stage == "spot-check":
+        if requested_methods != METHODS:
+            raise ValueError("The spot check always runs all five methods")
         spot_check(args.output_dir, args.workers)
         return
+    if requested_methods != METHODS and args.stage != "generate":
+        raise ValueError(
+            "Method-filtered runs support only the generate stage; merge or "
+            "aggregate the result separately."
+        )
     raw_path = args.output_dir / "raw_results.csv"
     if args.stage in {"generate", "all"}:
-        raw_path = generate(args.output_dir, args.workers)
+        raw_path = generate(args.output_dir, args.workers, requested_methods)
     if args.stage in {"aggregate", "all"}:
         write_aggregate(raw_path, args.output_dir)
     if args.stage in {"plot", "all"}:
         plot(raw_path, args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(raw_path, args.output_dir)
 
 

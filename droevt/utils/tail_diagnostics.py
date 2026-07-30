@@ -516,6 +516,9 @@ def plot_tail_diagnostics(
     _, density, first_derivative, second_derivative = tail_density_and_derivatives(x, candidate_thresholds)
 
     plot_theoretical_density = False
+    d_th = np.array([])
+    d1_th = np.array([])
+    d2_th = np.array([])
     if data_source[0] in ["gamma", "lognorm", "pareto"]:
         if data_source[0] == "gamma":
             (d_th, d1_th, d2_th) = gamma_density_derivatives(x, **data_source[1])
@@ -544,37 +547,36 @@ def plot_tail_diagnostics(
 
     # --- 1. Number of Exceedances ---
     ax_me.plot(threshold_percentages, num_exceedances, lw=2)
-    ax_me.set_title("Number of Exceedances")
-    ax_me.set_xlabel("Threshold Percentile (%)")
-    ax_me.set_ylabel("Number of Exceedances")
+    ax_me.set_title("Exceedances", fontsize=40)
+    ax_me.set_ylabel("Exceedances", fontsize=34)
 
     # --- 2. Tail Density ---
-    ax_pdf.plot(threshold_percentages, density, lw=2, label="Kernel Density Estimate")
-    ax_pdf.set_title("Tail Density Estimate")
-    ax_pdf.set_xlabel("Threshold Percentile (%)")
+    ax_pdf.plot(threshold_percentages, density, lw=2, label="KDE")
+    ax_pdf.set_title("Tail density", fontsize=40)
     # ax_pdf.legend()
 
     # --- 3. First Derivative ---
-    ax_d1.plot(threshold_percentages, first_derivative, lw=2, label="Kernel Density Estimate")
+    ax_d1.plot(threshold_percentages, first_derivative, lw=2, label="KDE")
     ax_d1.axhline(0, color="k", ls="--", alpha=0.5)
-    ax_d1.set_title("First Derivative  (Monotonicity)")
-    ax_d1.set_xlabel("Threshold Percentile (%)")
+    ax_d1.set_title("1st derivative", fontsize=40)
 
     # --- 4. Second Derivative ---
-    ax_d2.plot(threshold_percentages, second_derivative, lw=2, label="Kernel Density Estimate")
+    ax_d2.plot(threshold_percentages, second_derivative, lw=2, label="KDE")
     ax_d2.axhline(0, color="k", ls="--", alpha=0.5)
-    ax_d2.set_title("Second Derivative  (Curvature)")
-    ax_d2.set_xlabel("Threshold Percentile (%)")
+    ax_d2.set_title("2nd derivative", fontsize=40)
+
+    for axis in (ax_me, ax_pdf, ax_d1, ax_d2):
+        axis.tick_params(axis="both", labelsize=30)
     
     if plot_theoretical_density:
         ax_pdf.plot(threshold_percentages, d_th, lw=2, linestyle='--', color='orange', label="Theoretical") # type: ignore
-        ax_pdf.legend(loc='best')
+        ax_pdf.legend(loc='best', fontsize=22)
         
         ax_d1.plot(threshold_percentages, d1_th, lw=2, linestyle='--', color='orange', label="Theoretical") # type: ignore
-        ax_d1.legend(loc='best')
+        ax_d1.legend(loc='best', fontsize=22)
 
         ax_d2.plot(threshold_percentages, d2_th, lw=2, linestyle='--', color='orange', label="Theoretical") # type: ignore
-        ax_d2.legend(loc='best')
+        ax_d2.legend(loc='best', fontsize=22)
 
     # # --- 5. Tail Scores (Monotonicity) ---
     # ax_scores.plot(threshold_percentages, mono_scores, lw=2, label="Monotonicity")
@@ -595,7 +597,8 @@ def plot_tail_diagnostics(
     if region_name:
         fig.suptitle(f"Tail Diagnostics — {region_name}", fontsize=14)
 
-    fig.tight_layout()
+    fig.supxlabel("Threshold percentile (%)", fontsize=36, y=0.01)
+    fig.tight_layout(rect=(0.0, 0.07, 1.0, 1.0))
 
     return {
                "fig": fig,
@@ -605,6 +608,9 @@ def plot_tail_diagnostics(
                "density": density,
                "first_derivative": first_derivative,
                "second_derivative": second_derivative,
+               "theoretical_density": d_th,
+               "theoretical_first_derivative": d1_th,
+               "theoretical_second_derivative": d2_th,
             #    "monotonicity_scores": mono_scores,
             #    "curvature_stability_scores": conv_scores,
     }

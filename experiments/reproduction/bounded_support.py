@@ -291,95 +291,142 @@ def plot(raw_path: Path, output_dir: Path) -> Path:
         "\N{INFINITY}" if math.isinf(value) else str(value)
         for value in DISPLAY_ENDPOINTS
     ]
-    figure, axes = plt.subplots(3, 3, figsize=(18, 15), sharey="row")
+    figure, axes = plt.subplots(
+        3,
+        3,
+        figsize=(18, 9),
+        sharex=True,
+        sharey="row",
+    )
     for column, quantile in enumerate(QUANTILES):
         selected = [lookup[(quantile, endpoint)] for endpoint in DISPLAY_ENDPOINTS]
         true_value = 1.0 - quantile
-        axes[0, column].errorbar(
+        coverage = axes[0, column].errorbar(
             x,
             [row["coverage"] for row in selected],
             yerr=[row["coverage_half_width"] for row in selected],
-            color="blue",
+            color="tab:blue",
             marker="o",
-            capsize=5,
-            label="Coverage Rate",
-        )
-        axes[0, column].axhline(
-            0.95,
-            color="red",
-            linestyle=":",
-            alpha=0.7,
+            markersize=5,
             linewidth=2,
-            label=r"$1-\alpha$",
+            elinewidth=1.5,
+            capsize=4,
+            label="Empirical coverage",
+        )
+        nominal = axes[0, column].axhline(
+            0.95,
+            color="tab:red",
+            linestyle=":",
+            alpha=0.85,
+            linewidth=2,
+            label="Nominal coverage 0.95",
         )
         title = rf"$P(X\geq q_{{{quantile:g}}})$"
-        axes[0, column].set_title(
-            f"Coverage Probability for {title}" if column == 0 else title
-        )
-        axes[1, column].errorbar(
+        axes[0, column].set_title(title, fontsize=20, pad=7)
+        lower = axes[1, column].errorbar(
             x,
             [row["lower"] for row in selected],
             yerr=[row["lower_half_width"] for row in selected],
-            color="orange",
+            color="tab:orange",
             marker="o",
-            capsize=5,
-            label="Lower Bound",
+            markersize=5,
+            linewidth=2,
+            elinewidth=1.5,
+            capsize=4,
+            label="Lower bound",
         )
-        axes[1, column].errorbar(
+        upper = axes[1, column].errorbar(
             x,
             [row["upper"] for row in selected],
             yerr=[row["upper_half_width"] for row in selected],
-            color="green",
+            color="tab:green",
             marker="^",
-            capsize=5,
-            label="Upper Bound",
-        )
-        axes[1, column].axhline(
-            true_value,
-            color="red",
-            linestyle=":",
-            alpha=0.7,
+            markersize=6,
             linewidth=2,
-            label="True Value",
+            elinewidth=1.5,
+            capsize=4,
+            label="Upper bound",
         )
-        axes[1, column].set_title(
-            f"Estimated Tail Probability for {title}" if column == 0 else title
+        truth = axes[1, column].axhline(
+            true_value,
+            color="tab:red",
+            linestyle=":",
+            alpha=0.85,
+            linewidth=2,
+            label="True probability",
         )
-        axes[2, column].errorbar(
+        width = axes[2, column].errorbar(
             x,
             [row["width"] for row in selected],
             yerr=[row["width_half_width"] for row in selected],
-            color="purple",
+            color="tab:purple",
             marker="o",
-            capsize=5,
-            label="Width",
-        )
-        axes[2, column].set_title(
-            f"Width of Estimated Tail Probability for {title}"
-            if column == 0
-            else title
+            markersize=5,
+            linewidth=2,
+            elinewidth=1.5,
+            capsize=4,
+            label="Interval width",
         )
         for row_index in range(3):
-            axes[row_index, column].grid(True)
-            axes[row_index, column].set_xticks(x, labels)
-            axes[row_index, column].tick_params(axis="both", labelsize=12)
-            for tick in axes[row_index, column].get_xticklabels():
-                if tick.get_text() == "2.0":
-                    tick.set_weight("bold")
-        axes[0, column].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 0.95, 1])
-        axes[1, column].set_yticks([0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07])
-        axes[2, column].set_yticks([0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07])
-        if column == 0:
-            axes[2, column].set_xlabel(
-                "Right End Point of Distribution Support", fontsize=12
+            axes[row_index, column].grid(
+                axis="both",
+                color="0.75",
+                alpha=0.35,
+                linewidth=0.8,
             )
+            axes[row_index, column].set_xticks(x, labels)
+            axes[row_index, column].tick_params(
+                axis="both",
+                labelsize=14,
+                pad=3,
+                labelbottom=row_index == 2,
+            )
+            if row_index == 2:
+                for tick in axes[row_index, column].get_xticklabels():
+                    tick.set_rotation(35)
+                    tick.set_horizontalalignment("right")
+                    if tick.get_text() == "2.0":
+                        tick.set_weight("bold")
+        axes[0, column].set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+        probability_ticks = np.arange(0.0, 0.071, 0.01)
+        axes[1, column].set_yticks(probability_ticks)
+        axes[2, column].set_yticks(np.insert(probability_ticks, 1, 0.005))
+        for tick_label in axes[2, column].get_yticklabels():
+            if tick_label.get_text() == "0.005":
+                tick_label.set_fontsize(9)
         if column == 2:
-            axes[0, column].legend(loc="lower right", fontsize=12)
-            axes[1, column].legend(loc="upper right", fontsize=12)
-            axes[2, column].legend(loc="upper right", fontsize=12)
-    figure.tight_layout()
+            axes[0, column].legend(
+                loc="lower right",
+                fontsize=13,
+                framealpha=0.92,
+                borderpad=0.35,
+                labelspacing=0.3,
+                handlelength=1.7,
+                handletextpad=0.5,
+            )
+            axes[1, column].legend(
+                loc="upper right",
+                fontsize=15,
+                framealpha=0.92,
+            )
+            axes[2, column].legend(
+                loc="upper right",
+                fontsize=15,
+                framealpha=0.92,
+            )
+    axes[0, 0].set_ylabel("Coverage probability", fontsize=17)
+    axes[1, 0].set_ylabel("Tail probability bounds", fontsize=17)
+    axes[2, 0].set_ylabel("Interval width", fontsize=17)
+    figure.subplots_adjust(
+        left=0.085,
+        right=0.99,
+        top=0.95,
+        bottom=0.085,
+        wspace=0.10,
+        hspace=0.10,
+    )
     path = output_dir / "bounded_support.png"
-    figure.savefig(path, dpi=300, bbox_inches="tight")
+    figure.savefig(path, dpi=300)
     plt.close(figure)
     return path
 
@@ -561,7 +608,7 @@ def main() -> None:
         render(raw_path, args.output_dir)
     if args.stage in {"plot", "all"}:
         plot(raw_path, args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(raw_path, args.output_dir)
 
 

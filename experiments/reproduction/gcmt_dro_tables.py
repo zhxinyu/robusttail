@@ -255,6 +255,7 @@ def verify(output_dir: Path, manuscript_path: Path) -> Path:
     ]
     failures: list[str] = []
     comparison_rows: list[dict[str, object]] = []
+    total_reviewed = 0
     for display, label, generated_path in checks:
         body = _table_body(manuscript, label)
         generated = generated_path.read_text(encoding="utf-8").splitlines()
@@ -300,6 +301,7 @@ def verify(output_dir: Path, manuscript_path: Path) -> Path:
             f"| {display} | {len(differences)} | {exact} | {strict} | {reviewed} | "
             f"{max(differences):.2e} |"
         )
+        total_reviewed += reviewed
     comparison_path = output_dir / "display_comparison.csv"
     with comparison_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=comparison_rows[0].keys())
@@ -310,9 +312,17 @@ def verify(output_dir: Path, manuscript_path: Path) -> Path:
             "",
             "The comparison uses the displayed manuscript probabilities. Exact and strict-tolerance counts are reported separately.",
             "Values outside the project's strict `1e-4` absolute tolerance are not hidden: they are classified as reviewed numerical exceptions only when their displayed absolute difference is at most `6.01e-4`.",
-            "The exceptions are concentrated in the Northern California series and are consistent with numerical-stack drift between the historical environment (NumPy 1.26.4, SciPy 1.12.0, R 4.2.2) and `rs` (NumPy 2.4.1, SciPy 1.17.0, R 4.2.3, `ks` 1.14.2, Mosek 11.0.20).",
-            "Every cell and its classification is recorded in `display_comparison.csv`.",
         ]
+    )
+    if total_reviewed:
+        report.append(
+            "The reviewed exceptions are consistent with numerical-stack drift "
+            "between the historical and live `rs` environments."
+        )
+    else:
+        report.append("No reviewed numerical exceptions remain.")
+    report.append(
+        "Every cell and its classification is recorded in `display_comparison.csv`."
     )
     if failures:
         report.extend(["", "Failures: " + ", ".join(failures)])
@@ -337,7 +347,7 @@ def main() -> None:
         raw_path = generate(args.output_dir, args.workers)
     if args.stage in {"render", "all"}:
         render(raw_path, args.output_dir)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         verify(args.output_dir, args.manuscript)
 
 

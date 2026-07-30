@@ -86,9 +86,9 @@ FIELDS = (
     "upper_bound",
 )
 
-# Small, deliberately non-aggregate audit spanning standard/scarce samples,
-# light/heavy tails, and two repetitions.  The retained raw references were
-# recovered from git revision cf3b800 and the historical raw-result blobs.
+# Small, deliberately non-aggregate regression audit spanning standard/scarce
+# samples, light/heavy tails, and two repetitions.  These references use the
+# current post-logit-revision implementations and explicit R seeds.
 SPOT_TASKS = (
     ("benchmark", "gamma", 0.90, 0),
     ("benchmark", "gamma", 0.90, 11),
@@ -96,104 +96,116 @@ SPOT_TASKS = (
     ("scarce", "gamma", 0.60, 0),
     ("scarce", "pareto", 0.80, 0),
 )
-# DRO's historical CSV retained only its upper optimization; its lower
-# reference is therefore None.  Conventional-method CSVs retained both.
-SPOT_REFERENCES: dict[
-    tuple[str, str, float, int, str], tuple[float | None, float]
-] = {
-    ("benchmark", "gamma", 0.90, 0, "dro"): (None, 0.008351890210617741),
+SPOT_ABSOLUTE_TOLERANCE = 1e-8
+SPOT_REFERENCES: dict[tuple[str, str, float, int, str], tuple[float, float]] = {
+    ("benchmark", "gamma", 0.90, 0, "dro"): (
+        0.0014133016957056635,
+        0.00835189021063439,
+    ),
     ("benchmark", "gamma", 0.90, 0, "pot"): (
-        -6.149229014592855e-05,
-        6.149229014592854e-05,
+        math.nan,
+        math.nan,
     ),
     ("benchmark", "gamma", 0.90, 0, "pot_bt"): (
-        0.00483555732448583,
-        0.005649874279955305,
+        0.004850891032165228,
+        0.005666009538631142,
     ),
     ("benchmark", "gamma", 0.90, 0, "pl"): (
         0.004665307658099485,
         0.00562460022429603,
     ),
     ("benchmark", "gamma", 0.90, 0, "bayesian"): (
-        0.004141067622061608,
-        0.005560749920259482,
+        0.004073468420621296,
+        0.005582841941874454,
     ),
     ("benchmark", "gamma", 0.90, 0, "pwm"): (
-        0.004665804771880997,
-        0.005688335275041112,
+        0.004690123821950634,
+        0.005714282545438426,
     ),
-    ("benchmark", "gamma", 0.90, 11, "dro"): (None, 0.008980520085282646),
+    ("benchmark", "gamma", 0.90, 11, "dro"): (
+        0.001345902900719118,
+        0.00898052008448064,
+    ),
     ("benchmark", "gamma", 0.90, 11, "pot"): (
-        0.004872411788118723,
-        0.006311181206857844,
+        0.004916544689706767,
+        0.00635919657912986,
     ),
     ("benchmark", "gamma", 0.90, 11, "pot_bt"): (
-        0.005025649035540057,
-        0.00911407733101702,
+        0.0052932121057196555,
+        0.009437184369005818,
     ),
     ("benchmark", "gamma", 0.90, 11, "pl"): (
         0.005672442044207436,
         0.008373713587174054,
     ),
     ("benchmark", "gamma", 0.90, 11, "bayesian"): (
-        0.00445660065331051,
-        0.008215568211103957,
+        0.0045353596469771,
+        0.008134717946773553,
     ),
     ("benchmark", "gamma", 0.90, 11, "pwm"): (
-        0.005755282967299387,
-        0.00853857624573666,
+        0.0058816377496035376,
+        0.008682041143533253,
     ),
-    ("benchmark", "pareto", 0.99, 0, "dro"): (None, 0.026638473880761633),
+    ("benchmark", "pareto", 0.99, 0, "dro"): (
+        0.0,
+        0.026638473926494446,
+    ),
     ("benchmark", "pareto", 0.99, 0, "pot"): (
-        0.0005240467543878837,
-        0.007184415647136701,
+        0.0016226049549618986,
+        0.009127033774010206,
     ),
     ("benchmark", "pareto", 0.99, 0, "pot_bt"): (
-        -0.00045324361380816644,
-        0.007937270813071676,
+        0.0012175257093320316,
+        0.011440960222541532,
     ),
     ("benchmark", "pareto", 0.99, 0, "pl"): (
         0.0018264312199146083,
         0.006205298830047425,
     ),
     ("benchmark", "pareto", 0.99, 0, "bayesian"): (
-        0.0011395542111806056,
-        0.006578201368817308,
+        0.0009057884543515971,
+        0.006450766325153005,
     ),
     ("benchmark", "pareto", 0.99, 0, "pwm"): (
         0.0036987566643237003,
         0.0036987566643237003,
     ),
-    ("scarce", "gamma", 0.60, 0, "dro"): (None, 0.012642429548583675),
+    ("scarce", "gamma", 0.60, 0, "dro"): (
+        0.0,
+        0.01264242999674412,
+    ),
     ("scarce", "gamma", 0.60, 0, "pot"): (
-        0.001979160163306727,
-        0.007761898789686249,
+        0.002688119916426212,
+        0.008809126058453277,
     ),
     ("scarce", "gamma", 0.60, 0, "pl"): (
-        0.0018136413296431899,
-        0.009532787278558708,
+        0.0018136413231081506,
+        0.00953278870669263,
     ),
     ("scarce", "gamma", 0.60, 0, "bayesian"): (
-        0.0009401254695643236,
-        0.00817377599264422,
+        0.0005995441319953887,
+        0.00795417797702432,
     ),
     ("scarce", "gamma", 0.60, 0, "pwm"): (
-        0.0007144199383771921,
-        0.007151261721352858,
+        0.0017332385962939441,
+        0.008899009425795294,
     ),
-    ("scarce", "pareto", 0.80, 0, "dro"): (None, 0.013069757633165955),
+    ("scarce", "pareto", 0.80, 0, "dro"): (
+        2.684258686129637e-10,
+        0.013069751274252894,
+    ),
     ("scarce", "pareto", 0.80, 0, "pot"): (0.0, 0.0),
     ("scarce", "pareto", 0.80, 0, "pl"): (
         0.010253315647107786,
         0.010253315648541773,
     ),
     ("scarce", "pareto", 0.80, 0, "bayesian"): (
-        0.004101185236202109,
-        0.009980351009336747,
+        0.004243052346694154,
+        0.009862937637131846,
     ),
     ("scarce", "pareto", 0.80, 0, "pwm"): (
-        0.0001834488545295547,
-        0.008348873802747504,
+        0.0016359981376085201,
+        0.011077868896088723,
     ),
 }
 
@@ -204,24 +216,38 @@ class Task:
     distribution: str
     setting: float
     repetition: int
+    methods: tuple[str, ...] = ()
 
     @property
     def key(self) -> tuple[str, str, float, int]:
         return self.study, self.distribution, self.setting, self.repetition
 
 
-def _tasks(studies: tuple[str, ...]) -> list[Task]:
+def _tasks(
+    studies: tuple[str, ...],
+    requested_methods: tuple[str, ...] = METHODS,
+) -> list[Task]:
     tasks: list[Task] = []
     if "benchmark" in studies:
+        methods = tuple(
+            method
+            for method in STUDY_METHODS["benchmark"]
+            if method in requested_methods
+        )
         tasks.extend(
-            Task("benchmark", distribution, lhs, repetition)
+            Task("benchmark", distribution, lhs, repetition, methods)
             for distribution in DISTRIBUTIONS
             for lhs in BENCHMARK_LHS
             for repetition in range(REPETITIONS)
         )
     if "scarce" in studies:
+        methods = tuple(
+            method
+            for method in STUDY_METHODS["scarce"]
+            if method in requested_methods
+        )
         tasks.extend(
-            Task("scarce", distribution, threshold, repetition)
+            Task("scarce", distribution, threshold, repetition, methods)
             for distribution in DISTRIBUTIONS
             for threshold in SCARCE_THRESHOLDS
             for repetition in range(REPETITIONS)
@@ -260,22 +286,25 @@ def _run_task(task: Task) -> list[dict[str, object]]:
     )
     lhs = float(data_utils.get_quantile(module, lhs_quantile, params))
     rhs = float(data_utils.get_quantile(module, lhs_quantile + TRUE_VALUE, params))
-    dro_interval = _valid_interval(
-        estimate_tail_probability_D2_chi2_only(
-            input_data=sample,
-            left_end_point_objective=lhs,
-            right_end_point_objective=rhs,
-            threshold_percentage=threshold,
-            g_ellipsoidal_dimension=ELLIPSOIDAL_DIMENSION,
-            alpha=ALPHA,
-            random_state=RANDOM_SEED + task.repetition,
-            bootstrapping_size=BOOTSTRAPPING_SIZE,
-            right_endpoint=np.inf,
+    methods = task.methods or STUDY_METHODS[task.study]
+    intervals: dict[str, tuple[float, float]] = {}
+    if "dro" in methods:
+        intervals["dro"] = _valid_interval(
+            estimate_tail_probability_D2_chi2_only(
+                input_data=sample,
+                left_end_point_objective=lhs,
+                right_end_point_objective=rhs,
+                threshold_percentage=threshold,
+                g_ellipsoidal_dimension=ELLIPSOIDAL_DIMENSION,
+                alpha=ALPHA,
+                random_state=RANDOM_SEED + task.repetition,
+                bootstrapping_size=BOOTSTRAPPING_SIZE,
+                right_endpoint=np.inf,
+            )
         )
-    )
-    intervals: dict[str, tuple[float, float]] = {"dro": dro_interval}
-    methods = STUDY_METHODS[task.study]
-    for method in methods[1:]:
+    for method in methods:
+        if method == "dro":
+            continue
         intervals[method] = _valid_interval(
             benchmark_estimate_tail_probability(
                 input_data=sample,
@@ -333,13 +362,23 @@ def _write_atomic(
     temporary.replace(path)
 
 
-def generate(output_dir: Path, studies: tuple[str, ...], workers: int) -> Path:
+def generate(
+    output_dir: Path,
+    studies: tuple[str, ...],
+    workers: int,
+    requested_methods: tuple[str, ...] = METHODS,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    tasks = _tasks(studies)
+    tasks = _tasks(studies, requested_methods)
+    if any(not task.methods for task in tasks):
+        unavailable = {task.study for task in tasks if not task.methods}
+        raise ValueError(
+            f"No requested methods are available for studies: {sorted(unavailable)}"
+        )
     row_keys = [
         (task.study, task.distribution, task.setting, task.repetition, method)
         for task in tasks
-        for method in STUDY_METHODS[task.study]
+        for method in task.methods
     ]
     order = {key: index for index, key in enumerate(row_keys)}
     final_path = output_dir / "raw_results.csv"
@@ -355,10 +394,11 @@ def generate(output_dir: Path, studies: tuple[str, ...], workers: int) -> Path:
             int(row["repetition"]),
         )
         completed_methods.setdefault(key, set()).add(row["method"])
+    expected_methods = {task.key: set(task.methods) for task in tasks}
     malformed = [
         key
         for key, methods in completed_methods.items()
-        if methods != set(STUDY_METHODS[key[0]])
+        if key not in expected_methods or methods != expected_methods[key]
     ]
     if malformed:
         raise ValueError(f"Checkpoint has incomplete replicate groups: {malformed[:3]}")
@@ -442,11 +482,12 @@ def aggregate(raw_path: Path, study: str) -> list[dict[str, object]]:
                     raise ValueError(
                         f"Reversed interval for {(distribution, setting, method)}"
                     )
-                coverage = (
-                    finite
-                    & (values[:, 0] <= TRUE_VALUE)
-                    & (TRUE_VALUE <= values[:, 1])
-                ).astype(float)
+                # Tables 4.2 and 4.3 report coverage of the upper confidence
+                # bound, not two-sided interval coverage.  The distinction
+                # was invisible for the historical raw-scale Wald intervals
+                # whenever their lower endpoints were negative, but matters
+                # for bounded logit-scale intervals.
+                coverage = (finite & (TRUE_VALUE <= values[:, 1])).astype(float)
                 upper = values[finite, 1]
                 if upper.size < 2:
                     raise ValueError(
@@ -777,6 +818,16 @@ def _parse_studies(value: str) -> tuple[str, ...]:
     return requested
 
 
+def _parse_methods(value: str) -> tuple[str, ...]:
+    if value == "all":
+        return METHODS
+    requested = tuple(part.strip() for part in value.split(",") if part.strip())
+    invalid = set(requested) - set(METHODS)
+    if not requested or invalid:
+        raise ValueError(f"Invalid methods: {sorted(invalid)}")
+    return requested
+
+
 def spot_check(output_dir: Path) -> Path:
     """Run and compare the bounded manuscript-facing raw audit entries."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -810,9 +861,26 @@ def spot_check(output_dir: Path) -> Path:
             ("lower_bound", reference_lower),
             ("upper_bound", reference_upper),
         ):
-            if reference is None:
-                continue
             generated = float(row[bound])
+            matches_reference = bool(
+                np.isclose(
+                    generated,
+                    reference,
+                    rtol=0.0,
+                    atol=SPOT_ABSOLUTE_TOLERANCE,
+                    equal_nan=True,
+                )
+            )
+            if matches_reference and not (
+                math.isfinite(generated) and math.isfinite(reference)
+            ):
+                absolute_difference = 0.0
+            elif not (
+                math.isfinite(generated) and math.isfinite(reference)
+            ):
+                absolute_difference = math.inf
+            else:
+                absolute_difference = abs(generated - reference)
             comparisons.append(
                 {
                     "study": key[0],
@@ -822,12 +890,15 @@ def spot_check(output_dir: Path) -> Path:
                     "method": key[4],
                     "bound": bound,
                     "generated": generated,
-                    "historical": reference,
-                    "absolute_difference": abs(generated - reference),
+                    "reference": reference,
+                    "absolute_difference": absolute_difference,
+                    "matches_reference": matches_reference,
                     "coverage_agrees": (
-                        generated >= TRUE_VALUE
+                        math.isfinite(generated) and generated >= TRUE_VALUE
                     )
-                    == (reference >= TRUE_VALUE)
+                    == (
+                        math.isfinite(reference) and reference >= TRUE_VALUE
+                    )
                     if bound == "upper_bound"
                     else "",
                 }
@@ -838,12 +909,8 @@ def spot_check(output_dir: Path) -> Path:
         writer.writeheader()
         writer.writerows(comparisons)
 
-    deterministic = [
-        item for item in comparisons if item["method"] != "bayesian"
-    ]
-    bayesian = [item for item in comparisons if item["method"] == "bayesian"]
-    deterministic_within = sum(
-        float(item["absolute_difference"]) <= 1e-8 for item in deterministic
+    matching_references = sum(
+        item["matches_reference"] is True for item in comparisons
     )
     upper_coverage_agreement = sum(
         item["coverage_agrees"] is True
@@ -853,24 +920,22 @@ def spot_check(output_dir: Path) -> Path:
     upper_comparisons = sum(
         item["bound"] == "upper_bound" for item in comparisons
     )
-    worst_bayesian = max(
-        float(item["absolute_difference"]) for item in bayesian
-    )
     report = [
         "# Tables 4.2 and 4.3 raw-entry spot check",
         "",
         f"- Replicate groups: {len(SPOT_TASKS)}",
         f"- Method intervals: {len(rows)}",
-        f"- Compared historical bound fields: {len(comparisons)}",
-        f"- Non-Bayesian fields within `1e-8`: {deterministic_within}/{len(deterministic)}",
-        f"- Largest seeded-BI versus unseeded-historical difference: `{worst_bayesian:.6g}`",
+        f"- Seeded reference bound fields: {len(comparisons)}",
+        f"- Fields matching seeded references within `{SPOT_ABSOLUTE_TOLERANCE:g}` "
+        f"(including matched non-finite outcomes): {matching_references}/{len(comparisons)}",
         f"- Upper-bound coverage classification agreement: {upper_coverage_agreement}/{upper_comparisons}",
+        "- References use the current post-logit-revision implementations and explicit R seeds",
         "- Standard-size DRO uses the historical Python bootstrap stream; scarce-data DRO uses its later NumPy stream",
         "- MLE-v1 uses a null PDF graphics device in headless workers; this restores the retained adaptive threshold calculation without changing it",
         "- These are raw-entry spot checks, not 200-repetition aggregate reproductions",
-        "- Full generation, checkpointing, aggregation, LaTeX rendering, and manuscript comparison remain available through the `all` stage",
+        "- Full generation, checkpointing, aggregation, and LaTeX rendering remain available through the `all` stage",
         "",
-        "| Study | Distribution | Setting | Rep | Method | Bound | Generated | Historical | Difference |",
+        "| Study | Distribution | Setting | Rep | Method | Bound | Generated | Reference | Difference |",
         "| --- | --- | ---: | ---: | --- | --- | ---: | ---: | ---: |",
     ]
     for item in sorted(
@@ -882,10 +947,22 @@ def spot_check(output_dir: Path) -> Path:
             f"| `{item['study']}` | `{item['distribution']}` | "
             f"{item['setting']} | {item['repetition']} | `{item['method']}` | "
             f"`{item['bound']}` | {item['generated']:.10g} | "
-            f"{item['historical']:.10g} | {item['absolute_difference']:.3g} |"
+            f"{item['reference']:.10g} | {item['absolute_difference']:.3g} |"
         )
     report_path = output_dir / "spot_check_report.md"
     report_path.write_text("\n".join(report) + "\n", encoding="utf-8")
+    if matching_references != len(comparisons):
+        raise AssertionError(
+            f"Spot-check reference mismatch: "
+            f"{matching_references}/{len(comparisons)} fields matched; "
+            f"see {report_path}"
+        )
+    if upper_coverage_agreement != upper_comparisons:
+        raise AssertionError(
+            f"Spot-check coverage mismatch: "
+            f"{upper_coverage_agreement}/{upper_comparisons} upper bounds agreed; "
+            f"see {report_path}"
+        )
     return report_path
 
 
@@ -895,6 +972,11 @@ def main() -> None:
         "stage", choices=("generate", "render", "verify", "spot-check", "all")
     )
     parser.add_argument("--study", default="all")
+    parser.add_argument(
+        "--methods",
+        default="all",
+        help="Comma-separated internal method names, e.g. pot,pot_bt,pwm",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
     args = parser.parse_args()
@@ -903,13 +985,19 @@ def main() -> None:
         spot_check(args.output_dir)
         return
     studies = _parse_studies(args.study)
+    methods = _parse_methods(args.methods)
+    if methods != METHODS and args.stage != "generate":
+        raise ValueError(
+            "Method-filtered runs support only the generate stage; merge the "
+            "result with unchanged method rows before rendering."
+        )
     raw_path = args.output_dir / "raw_results.csv"
     if args.stage in {"generate", "all"}:
-        raw_path = generate(args.output_dir, studies, args.workers)
+        raw_path = generate(args.output_dir, studies, args.workers, methods)
     if args.stage in {"render", "all"}:
         for study in studies:
             render(raw_path, args.output_dir, study)
-    if args.stage in {"verify", "all"}:
+    if args.stage == "verify":
         for study in studies:
             verify(raw_path, args.output_dir, study)
 

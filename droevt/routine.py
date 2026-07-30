@@ -247,8 +247,8 @@ def _optimization_plain_kolmogorov(data: np.ndarray,
     """
     new_objective_function = deepcopy(objective_function)
     D_riser_number = 0
-    data_over_threshold = np.sort(data[data > threshold])
-    size_over_threshold = np.sum(data > threshold)
+    data_over_threshold = np.sort(data[data >= threshold])
+    size_over_threshold = np.sum(data >= threshold)
     size_on_data = data.shape[0]
 
     z = z_of_kolmogorov(alpha=alpha,
@@ -308,8 +308,8 @@ def _optimization_monotone_kolmogorov(data: np.ndarray,
     """
     new_objective_function = deepcopy(objective_function)
     D_riser_number = 1
-    data_over_threshold = np.sort(data[data > threshold])
-    size_over_threshold = np.sum(data > threshold)
+    data_over_threshold = np.sort(data[data >= threshold])
+    size_over_threshold = np.sum(data >= threshold)
     size_on_data = data.shape[0]
 
     z = z_of_kolmogorov(alpha=alpha,
@@ -378,8 +378,8 @@ def _optimization_convex_kolmogorov(data: np.ndarray,
     """
     new_objective_function = deepcopy(objective_function)
     D_riser_number = 2
-    data_over_threshold = np.sort(data[data > threshold])
-    size_over_threshold = np.sum(data > threshold)
+    data_over_threshold = np.sort(data[data >= threshold])
+    size_over_threshold = np.sum(data >= threshold)
     size_on_data = data.shape[0]
 
     z = z_of_kolmogorov(alpha=alpha,
@@ -561,10 +561,10 @@ def optimization_with_ellipsodial_constraint(D: int, input_data: np.ndarray,
         thresholds = [np.quantile(input_data, threshold_percentage)]
         g_EsList = [[PolynomialFunction([thresholds[0], np.inf], [[0] * i + [1]])
                      for i in range(g_ellipsoidal_dimension)]]
-        muList = [np.array([np.sum(input_data**power*(input_data > thresholds[0])) /
+        muList = [np.array([np.sum(input_data**power*(input_data >= thresholds[0])) /
                             input_data.size for power in range(g_ellipsoidal_dimension)])]
         SigmaList = [np.cov(np.vstack(
-            [(input_data > thresholds[0])*1.0*input_data**power for power in range(g_ellipsoidal_dimension)]))]
+            [(input_data >= thresholds[0])*1.0*input_data**power for power in range(g_ellipsoidal_dimension)]))]
     else:
         assert isinstance(threshold_percentage, list) and len(
             threshold_percentage) >= 2
@@ -576,10 +576,10 @@ def optimization_with_ellipsodial_constraint(D: int, input_data: np.ndarray,
                       for each_threshold_percentage in threshold_percentage]
         g_EsList = [[PolynomialFunction([threshold, np.inf], [[0] * i + [1]])
                      for i in range(g_ellipsoidal_dimension)] for threshold in thresholds]
-        muList = [np.array([np.sum(input_data**power*(input_data > threshold)) /
+        muList = [np.array([np.sum(input_data**power*(input_data >= threshold)) /
                             input_data.size for power in range(g_ellipsoidal_dimension)]) for threshold in thresholds]
         SigmaList = [np.cov(np.vstack(
-            [(input_data > threshold)*1.0*input_data**power for power in range(g_ellipsoidal_dimension)])) for threshold in thresholds]
+            [(input_data >= threshold)*1.0*input_data**power for power in range(g_ellipsoidal_dimension)])) for threshold in thresholds]
 
     optimization_functions = {
         0: _optimization_plain_chi_square,

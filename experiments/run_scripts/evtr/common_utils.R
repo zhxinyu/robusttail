@@ -59,6 +59,27 @@ gradientpGPD <- function(x,xi,beta,eps = 1e-12)
 	return(output)
 }
 
+logit_delta_interval <- function(probability, standard_error, alpha = 0.05)
+{
+    probability <- as.numeric(probability)[1]
+    standard_error <- as.numeric(standard_error)[1]
+
+    if (!is.finite(probability) || !is.finite(standard_error) ||
+        probability <= 0 || probability >= 1 || standard_error < 0) {
+        return(c(NA_real_, NA_real_))
+    }
+
+    if (standard_error == 0) {
+        return(c(probability, probability))
+    }
+
+    logit_estimate <- qlogis(probability)
+    logit_standard_error <- standard_error / (probability * (1 - probability))
+    logit_interval <- logit_estimate +
+        qnorm(c(alpha / 2, 1 - alpha / 2)) * logit_standard_error
+    return(plogis(logit_interval))
+}
+
 asymptoticCIforGPDfit_m <- function(fitGPD, h, hGrad, alpha = 0.05, verbose = TRUE)
 {
 
@@ -85,8 +106,10 @@ asymptoticCIforGPDfit_m <- function(fitGPD, h, hGrad, alpha = 0.05, verbose = TR
 	gradient  <- hGrad(xi,beta)
 	sdHat <- sqrt(t(gradient)%*%Sigma%*%gradient/nexc)
 
-	CI <- hHat + qnorm(c(alpha/2, 1-alpha/2))* c(sdHat)
-	output <- (1 - Fnu)*c(lB = CI[1], uB = CI[2])
+	probability <- (1 - Fnu) * hHat
+	standard_error <- (1 - Fnu) * sdHat
+	CI <- logit_delta_interval(probability, standard_error, alpha)
+	output <- c(lB = CI[1], uB = CI[2])
 	}
 
 

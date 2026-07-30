@@ -5,6 +5,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
+from scipy.special import expit, logit
+from scipy.stats import norm
 
 ENVIRONMENT_PREFIX = Path(sys.executable).resolve().parent.parent
 os.environ.setdefault("R_HOME", str(ENVIRONMENT_PREFIX / "lib" / "R"))
@@ -20,6 +22,41 @@ class _RResult:
 
 
 class BenchmarkTailProbabilityTest(unittest.TestCase):
+    def test_logit_delta_interval_is_bounded_and_matches_formula(self):
+        common_utils = (
+            Path(__file__).resolve().parents[1]
+            / "experiments"
+            / "run_scripts"
+            / "evtr"
+            / "common_utils.R"
+        )
+        benchmark.ro.r(f"source('{common_utils.as_posix()}')")
+        probability = 0.01
+        standard_error = 0.02
+        alpha = 0.05
+
+        result = np.asarray(
+            benchmark.ro.r(
+                "logit_delta_interval("
+                f"{probability}, {standard_error}, {alpha})"
+            ),
+            dtype=float,
+        )
+        critical_value = norm.ppf(1 - alpha / 2)
+        transformed_standard_error = standard_error / (
+            probability * (1 - probability)
+        )
+        expected = expit(
+            logit(probability)
+            + np.asarray([-critical_value, critical_value])
+            * transformed_standard_error
+        )
+
+        self.assertLess(probability - critical_value * standard_error, 0)
+        np.testing.assert_allclose(result, expected, rtol=1e-12, atol=0)
+        self.assertGreater(result[0], 0)
+        self.assertLess(result[1], 1)
+
     def test_explicit_threshold_is_forwarded_to_retained_r_estimator(self):
         with patch.object(benchmark.ro, "r", return_value=_RResult()) as mocked_r:
             result = benchmark.benchmark_estimate_tail_probability(

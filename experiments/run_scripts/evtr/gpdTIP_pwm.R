@@ -23,8 +23,9 @@ asymptoticCIforGPD_delta <- function(fitGPD, h, hGrad, alpha=0.05, verbose = TRU
         if (is.na(sdHat_pwm)) {
             sdHat_pwm <- 0
         }
-		CI <- hHat_pwm + qnorm(c(alpha/2, 1-alpha/2))*c(sdHat_pwm)
-		output <- prob_over_threshold*c(CI[1], CI[2])
+		probability <- prob_over_threshold * hHat_pwm
+		standard_error <- prob_over_threshold * sdHat_pwm
+		output <- logit_delta_interval(probability, standard_error, alpha)
 	}
 
 	return(output)

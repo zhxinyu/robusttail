@@ -3,10 +3,10 @@
 The commands below regenerate the experimental tables and figures in the
 manuscript. Run them from the repository root. Generated files are written
 under `experiments/generated/` by default. This directory is intentionally
-excluded from version control: each command creates the documented numerical
-outputs and manuscript-ready LaTeX or plot artifact at run time. Pass
-`--output-dir PATH` to a direct command to use another local folder; the
-runner creates it when needed.
+excluded from version control: each command creates its documented numerical
+outputs plus a manuscript-ready LaTeX row fragment or plot artifact at run
+time. Pass `--output-dir PATH` to a direct command to use another local
+folder; the runner creates it when needed.
 
 Except where the stages are shown separately, the `all` stage performs the
 complete generation and rendering workflow in one command.
@@ -33,10 +33,12 @@ On Apple Silicon, use `environment_osx-arm64.yml` instead. The optimization
 experiments require a valid MOSEK license; installation details are in the
 repository's main `README.md`.
 
-The simulation runners below use 16 workers. A smaller value can be passed
-with `--workers` when fewer CPU cores are available. Long-running simulations
-write an atomic partial CSV and resume from completed replicate groups when
-the same command is rerun.
+The simulation runners below use 16 workers. A worker is an independent Python
+process that handles one simulation task at a time; this setting controls CPU
+parallelism, not the number of Monte Carlo repetitions. A smaller value can be
+passed with `--workers` when fewer CPU cores are available. Long-running
+simulations write an atomic partial CSV and resume from completed replicate
+groups when the same command is rerun.
 
 ## Optional wrapper
 

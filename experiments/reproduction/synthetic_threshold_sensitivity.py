@@ -635,6 +635,22 @@ def verify_against_manuscript(
     for label, generated_path in comparisons:
         expected = _parse_cells(_extract_manuscript_rows(manuscript_text, label))
         generated = _parse_cells(generated_path.read_text(encoding="utf-8"))
+        expected_row_count = len(DISTRIBUTIONS) * len(THRESHOLDS)
+        if len(expected) != expected_row_count:
+            failures.append(
+                f"{label}: expected {expected_row_count} active manuscript rows, "
+                f"found {len(expected)}"
+            )
+            continue
+        if not generated:
+            failures.append(f"{label}: generated row file is empty")
+            continue
+        if require_full_repetitions and len(generated) != expected_row_count:
+            failures.append(
+                f"{label}: full verification requires {expected_row_count} generated "
+                f"rows, found {len(generated)}"
+            )
+            continue
         for generated_row in generated:
             if generated_row in expected:
                 report_rows.append(

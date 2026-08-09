@@ -62,7 +62,17 @@
         {
           "latex_label": "tb5_real_tb0",
           "current_display": "Table G.2",
-          "output": "experiments/generated/gcmt_descriptive_summary/table_rows.tex"
+          "output": "experiments/generated/gcmt_descriptive_summary/table_rows.tex",
+          "additional_outputs": [
+            "experiments/generated/gcmt_descriptive_summary/plots/ecuador_boxplot.png",
+            "experiments/generated/gcmt_descriptive_summary/plots/off_coast_of_northern_ca_boxplot.png",
+            "experiments/generated/gcmt_descriptive_summary/plots/turkey_boxplot.png",
+            "experiments/generated/gcmt_descriptive_summary/plots/hokkaido_japan_region_boxplot.png",
+            "experiments/generated/gcmt_descriptive_summary/plots/banda_sea_boxplot.png",
+            "experiments/generated/gcmt_descriptive_summary/plots/kuril_islands_boxplot.png",
+            "experiments/generated/gcmt_descriptive_summary/plots/solomon_islands_boxplot.png",
+            "experiments/generated/gcmt_descriptive_summary/plots/fiji_islands_region_boxplot.png"
+          ]
         }
       ]
     },

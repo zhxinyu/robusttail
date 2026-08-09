@@ -32,6 +32,13 @@ DEFAULT_OUTPUT_DIR = REPOSITORY_ROOT / "experiments" / "generated" / "gcmt_descr
 DEFAULT_MANUSCRIPT = REPOSITORY_ROOT.parent / "latex" / "jasa_manu.tex"
 MANUSCRIPT_PLOT_DIR = REPOSITORY_ROOT.parent / "latex" / "plots"
 
+# Matplotlib 3.10.8 changes a small amount of antialiasing relative to the
+# 3.7.1 build recorded in the manuscript PNG metadata.  These limits accept
+# that measured renderer-only variation while still rejecting a materially
+# different plot.
+MAX_REGENERATED_DIFFERING_PIXELS = 5_000
+MAX_REGENERATED_MEAN_ABSOLUTE_DIFFERENCE = 2.0
+
 REGIONS: tuple[tuple[str, str, str], ...] = (
     ("ECUADOR", "Ecuador", "ecuador_boxplot.png"),
     (
@@ -203,6 +210,7 @@ def verify(output_dir: Path, manuscript_path: Path) -> Path:
         "| --- | --- | --- | ---: | ---: | ---: |",
     ]
     regenerated_all_exact = True
+    regenerated_all_equivalent = True
     stored_all_exact = True
     for _, _, plot_filename in REGIONS:
         stored = HISTORICAL_PLOT_DIR / plot_filename
@@ -211,8 +219,13 @@ def verify(output_dir: Path, manuscript_path: Path) -> Path:
         stored_exact = _sha256(stored) == _sha256(expected)
         regenerated_exact = _sha256(regenerated) == _sha256(expected)
         differing, maximum, mean = _pixel_comparison(regenerated, expected)
+        regenerated_equivalent = (
+            0 <= differing <= MAX_REGENERATED_DIFFERING_PIXELS
+            and mean <= MAX_REGENERATED_MEAN_ABSOLUTE_DIFFERENCE
+        )
         stored_all_exact &= stored_exact
         regenerated_all_exact &= regenerated_exact
+        regenerated_all_equivalent &= regenerated_equivalent
         report.append(
             f"| `{plot_filename}` | {'exact' if stored_exact else 'different'} | "
             f"{'exact' if regenerated_exact else 'different'} | {differing} | "
@@ -224,6 +237,8 @@ def verify(output_dir: Path, manuscript_path: Path) -> Path:
             "",
             f"- All eight stored experiment assets are byte-identical to the manuscript assets: `{stored_all_exact}`",
             f"- All eight regenerated assets are byte-identical to the manuscript assets: `{regenerated_all_exact}`",
+            "- All eight regenerated assets satisfy the documented "
+            f"cross-version pixel tolerance: `{regenerated_all_equivalent}`",
             f"- Regeneration Matplotlib version: `{plt.matplotlib.__version__}`",
             "- Stored manuscript PNG metadata reports Matplotlib `3.7.1`.",
         ]
@@ -234,6 +249,10 @@ def verify(output_dir: Path, manuscript_path: Path) -> Path:
         raise AssertionError("Generated Table G.2 numerical rows differ from manuscript")
     if not stored_all_exact:
         raise AssertionError("Stored experiment box plots differ from manuscript assets")
+    if not regenerated_all_equivalent:
+        raise AssertionError(
+            "Regenerated box plots exceed the documented cross-version pixel tolerance"
+        )
     return report_path
 
 

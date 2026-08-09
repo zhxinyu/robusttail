@@ -67,7 +67,7 @@ STUDY_METHODS = {
     "scarce": ("dro", "pot", "pl", "bayesian", "pwm"),
 }
 METHOD_LABELS = {
-    "dro": r"DRO with $(2,\chi^2)$",
+    "dro": r"\shortstack{DRO\\with $(2, \chi^2)$}",
     "pot": "MLE-v1",
     "pot_bt": "MLE-v2",
     "pl": "PL",
@@ -527,6 +527,21 @@ def _scientific(value: float) -> str:
     return rf"{coefficient:.2f}\times 10^{{{exponent}}}"
 
 
+def _method_label(study: str, method: str) -> str:
+    """Return the study-specific method label used in the manuscript."""
+    if study == "scarce" and method == "pot":
+        return "MLE"
+    return METHOD_LABELS[method]
+
+
+def _coverage_latex(coverage: float, half_width: float) -> str:
+    """Bold the notably sub-nominal coverage cells, as in the manuscript."""
+    value = rf"{coverage:.3f}(\pm {half_width:.3f})"
+    if coverage < 0.90:
+        value = rf"\bm{{{value}}}"
+    return rf"${value}$"
+
+
 def render(raw_path: Path, output_dir: Path, study: str) -> Path:
     rows = aggregate(raw_path, study)
     settings = BENCHMARK_LHS if study == "benchmark" else SCARCE_THRESHOLDS
@@ -535,10 +550,11 @@ def render(raw_path: Path, output_dir: Path, study: str) -> Path:
         (row["method"], row["setting"], row["distribution"]): row for row in rows
     }
     lines: list[str] = []
+    setting_precision = 3 if study == "benchmark" else 2
     for method in methods:
         for setting_index, setting in enumerate(settings):
             prefix = (
-                rf"\multirow{{{len(settings)}}}{{*}}{{{METHOD_LABELS[method]}}}"
+                rf"\multirow{{{len(settings)}}}{{*}}{{{_method_label(study, method)}}}"
                 if setting_index == 0
                 else ""
             )
@@ -549,11 +565,16 @@ def render(raw_path: Path, output_dir: Path, study: str) -> Path:
                     [
                         rf"${row['relative_ratio']:.3f}(\pm {row['relative_ratio_half_width']:.3f})$",
                         rf"${_scientific(float(row['upper_bound']))}(\pm {_scientific(float(row['upper_bound_half_width']))})$",
-                        rf"${row['coverage']:.3f}(\pm {row['coverage_half_width']:.3f})$",
+                        _coverage_latex(
+                            float(row["coverage"]),
+                            float(row["coverage_half_width"]),
+                        ),
                     ]
                 )
             lines.append(
-                f"{prefix} & ${setting:.3f}$ & " + " & ".join(cells) + r" \\"
+                f"{prefix} & ${setting:.{setting_precision}f}$ & "
+                + " & ".join(cells)
+                + r" \\"
             )
         lines.append(r"\hline")
     filename = "table_4_2_rows.tex" if study == "benchmark" else "table_4_3_rows.tex"

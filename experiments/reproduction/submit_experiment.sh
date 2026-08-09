@@ -106,7 +106,8 @@ case "${study}" in
         printf '  %s\n' "${display_groups[@]}"
         echo "  all"
         echo
-        echo "WORKERS defaults to 16."
+        echo "WORKERS is the number of parallel Python processes (default: 16)."
+        echo "It controls CPU concurrency, not Monte Carlo repetitions."
         echo "OUTPUT_ROOT defaults to experiments/generated."
         ;;
     all)

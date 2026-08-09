@@ -244,6 +244,9 @@ def aggregate(raw_path: Path) -> list[dict[str, float]]:
 def _scientific(value: float) -> str:
     exponent = math.floor(math.log10(abs(value)))
     coefficient = value / (10**exponent)
+    if round(abs(coefficient), 2) >= 10:
+        coefficient /= 10
+        exponent += 1
     return rf"{coefficient:.2f}\times 10^{{{exponent}}}"
 
 

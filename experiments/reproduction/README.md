@@ -184,5 +184,6 @@ Output: `table_rows.tex`, `summary.csv`, and eight regional box plots under
 
 `manifest.json` maps stable study identifiers to the paper's
 display numbers, LaTeX labels, and generated artifacts.
-The paper also provides the analytical Table B.1 and Figures 6--8; no
-experiment command is required for these displays.
+Table B.1 and Figures 6--8 are analytical displays derived directly from the
+paper's formulas; they do not depend on data or simulation and therefore
+require no experiment command.

@@ -62,38 +62,11 @@ Below we illustrate the diagnostics for several benchmark distributions.
 
 ### Diagnostic Examples
 
-<table>
-  <tr>
-    <td>
-
-**Example 1 — Gamma (Light Tail)**  
-<br>
-<img src="droevt/utils/tail_diagnostics_gamma.png" width="420"/>
-
-</td>
-<td>
-
-**Example 2 — Lognormal (Sub-Exponential Tail)**  
-<br>
-<img src="droevt/utils/tail_diagnostics_lognorm.png" width="420"/>
-
-</td>
-<td>
-
-**Example 3 — Pareto (Heavy Tail)**  
-<br>
-<img src="droevt/utils/tail_diagnostics_pareto.png" width="420"/>
-
-</td>
-<td>
-
-**Example 4 — Seismic Magnitudes (CMT Data)**  
-<br>
-<img src="droevt/utils/tail_diagnostics_cmt.png" width="420"/>
-
-</td>
-  </tr>
-</table>
+<img
+  src="droevt/utils/tail_diagnostics.png"
+  alt="Tail diagnostics for Gamma, Lognormal, Pareto, and GCMT seismic magnitudes"
+  width="100%"
+/>
 
 ### Interpretation
 

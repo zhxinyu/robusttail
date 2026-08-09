@@ -3,7 +3,7 @@
 ## Table of contents
 
 - [Quick start](#quick-start)
-- [Reproducing the manuscript](#reproducing-the-manuscript)
+- [Reproducing the paper](#reproducing-the-paper)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Platform support](#platform-support)
@@ -26,10 +26,10 @@ PYTHONPATH="$(git rev-parse --show-toplevel)" python exp_tail_probability.py --e
 
 (If not in a git repo, set `PYTHONPATH` to the project root instead.)
 
-## Reproducing the manuscript
+## Reproducing the paper
 
-To regenerate the tables and figures reported in the manuscript, follow the
-[manuscript reproduction guide](experiments/reproduction/README.md). It lists
+To regenerate the tables and figures reported in the paper, follow the
+[paper reproduction guide](experiments/reproduction/README.md). It lists
 the command for each experimental display and the corresponding generated
 LaTeX table or plot.
 

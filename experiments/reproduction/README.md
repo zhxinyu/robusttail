@@ -1,10 +1,10 @@
-# Reproducing the manuscript experiments
+# Reproducing the paper's computational results
 
-The commands below regenerate the experimental tables and figures in the
-manuscript. Run them from the repository root. Generated files are written
+The commands below regenerate the computational tables and figures in the
+paper. Run them from the repository root. Generated files are written
 under `experiments/generated/` by default. This directory is intentionally
 excluded from version control: each command creates its documented numerical
-outputs plus a manuscript-ready LaTeX row fragment or plot artifact at run
+outputs plus a formatted LaTeX row fragment or plot artifact at run
 time. Pass `--output-dir PATH` to a direct command to use another local
 folder; the runner creates it when needed.
 
@@ -56,7 +56,7 @@ Run the wrapper with `--help` to list every display group. The `all` option
 runs the complete workflow and may take more than eight hours. If
 `OUTPUT_ROOT` is omitted, the wrapper uses `experiments/generated/`.
 
-## Main-paper experiments
+## Main-paper results
 
 ### Figure 1: tail diagnostics
 
@@ -127,7 +127,7 @@ Output: `real_data_vs_evt_bootstrap_ecuador_coverage.png` and the
 replicate-level and aggregate CSV files under
 `$OUTPUT_ROOT/gcmt_bootstrap_figure/`.
 
-## Appendix experiments
+## Appendix results
 
 ### Table F.1(a): tail probability across shape constraints
 
@@ -182,7 +182,7 @@ Output: `table_rows.tex`, `summary.csv`, and eight regional box plots under
 
 ## Reproduction metadata
 
-`manifest.json` maps stable study identifiers to the current manuscript
+`manifest.json` maps stable study identifiers to the paper's
 display numbers, LaTeX labels, and generated artifacts.
 The paper also provides the analytical Table B.1 and Figures 6--8; no
 experiment command is required for these displays.
